@@ -1,0 +1,5 @@
+prefix_rule(pattern=["git"], decision="allow")
+prefix_rule(pattern=["git", "push"], decision="allow")
+prefix_rule(pattern=["gh", "pr"], decision="allow")
+prefix_rule(pattern=["rm", "-f", "pnpm-lock.yaml"], decision="allow")
+prefix_rule(pattern=["rm", "-f", ".git/index.lock"], decision="allow")

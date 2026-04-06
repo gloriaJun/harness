@@ -1,0 +1,9 @@
+# Backup files created by setup.sh
+*.backup.*
+
+# OS
+.DS_Store
+
+# Secret-containing files (if accidentally copied)
+claude/settings.json
+codex/config.toml

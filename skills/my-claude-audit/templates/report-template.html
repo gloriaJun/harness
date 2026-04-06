@@ -1,0 +1,2834 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Code Configuration Audit</title>
+    <style>
+      :root {
+        --bg-primary: #1a1a2e;
+        --bg-card: #16213e;
+        --bg-card-hover: #1a2745;
+        --bg-input: #0f1a30;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0b0;
+        --text-muted: #707088;
+        --accent: #0f3460;
+        --accent-light: #1a4a80;
+        --border: #2a2a4a;
+        --green: #4caf50;
+        --green-bg: rgba(76, 175, 80, 0.12);
+        --yellow: #ff9800;
+        --yellow-bg: rgba(255, 152, 0, 0.12);
+        --red: #f44336;
+        --red-bg: rgba(244, 67, 54, 0.12);
+        --blue: #2196f3;
+        --blue-bg: rgba(33, 150, 243, 0.12);
+        --purple: #9c27b0;
+        --purple-bg: rgba(156, 39, 176, 0.12);
+        --cyan: #00bcd4;
+        --teal: #009688;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        --transition: 0.2s ease;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+          sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      .header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .header .subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      .scope-badge {
+        display: inline-block;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: var(--accent);
+        color: var(--blue);
+        margin-top: 8px;
+      }
+      .analyzer-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .analyzer-badge.gemini { background: rgba(66, 133, 244, 0.2); color: #4285f4; }
+      .analyzer-badge.openai { background: rgba(16, 163, 127, 0.2); color: #10a37f; }
+      .analyzer-badge.codex { background: rgba(16, 163, 127, 0.2); color: #10a37f; }
+      .analyzer-badge.claude-code { background: rgba(204, 120, 50, 0.2); color: #cc7832; }
+      .analyzer-badge.custom { background: rgba(156, 39, 176, 0.2); color: #9c27b0; }
+
+      /* Language toggle */
+      .lang-toggle {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        display: flex;
+        gap: 0;
+        overflow: hidden;
+        z-index: 100;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .lang-toggle button {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 5px 12px;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      .lang-toggle button.active {
+        background: var(--blue);
+        color: #fff;
+      }
+      .lang-toggle button:hover:not(.active) {
+        color: var(--text-primary);
+      }
+
+      /* Dashboard grid */
+      .dashboard {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+      @media (max-width: 768px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Score gauge */
+      .gauge-container {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        text-align: center;
+        box-shadow: var(--shadow);
+      }
+      .gauge-container h3 {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .gauge-label {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+
+      /* Radar + stats panel */
+      .stats-panel {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .radar-wrap {
+        display: flex;
+        justify-content: center;
+      }
+      .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+      }
+      .stat-box {
+        background: var(--bg-input);
+        border-radius: var(--radius);
+        padding: 12px;
+        text-align: center;
+      }
+      .stat-box .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .stat-box .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+
+      /* Tabs */
+      .tab-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding-bottom: 4px;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 24px;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+        border-radius: var(--radius) var(--radius) 0 0;
+        transition:
+          background var(--transition),
+          color var(--transition);
+      }
+      .tab-btn:hover {
+        background: var(--bg-card);
+        color: var(--text-primary);
+      }
+      .tab-btn.active {
+        background: var(--bg-card);
+        color: var(--blue);
+        border-bottom: 2px solid var(--blue);
+        margin-bottom: -2px;
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+        transition: background var(--transition);
+      }
+      .card:hover {
+        background: var(--bg-card-hover);
+      }
+      .card h3 {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+      .card p {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+
+      /* Severity badges */
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .badge-critical {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+      .badge-warning {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+      }
+      .badge-info {
+        background: var(--blue-bg);
+        color: var(--blue);
+      }
+      .badge-good {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+
+      /* Effort badges */
+      .effort {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .effort-easy {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .effort-medium {
+        background: var(--yellow-bg);
+        color: var(--yellow);
+      }
+      .effort-hard {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+
+      /* Tables */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      th:hover {
+        color: var(--text-primary);
+      }
+      th .sort-arrow {
+        margin-left: 4px;
+        font-size: 0.65rem;
+      }
+      tr:hover td {
+        background: var(--bg-input);
+      }
+
+      /* Skill grid */
+      .skill-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+      }
+      .skill-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 16px;
+        border-left: 3px solid var(--accent);
+        box-shadow: var(--shadow);
+        transition: background var(--transition);
+      }
+      .skill-card:hover {
+        background: var(--bg-card-hover);
+      }
+      .skill-card .skill-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .skill-card .skill-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+      }
+      .marketplace-badge {
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: var(--cyan);
+        font-weight: 500;
+      }
+      .cso-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .cso-good {
+        background: var(--green);
+      }
+      .cso-warning {
+        background: var(--yellow);
+      }
+      .cso-bad {
+        background: var(--red);
+      }
+      .overlap-icon {
+        color: var(--yellow);
+        font-size: 0.8rem;
+      }
+      .enabled-badge {
+        font-size: 0.65rem;
+        color: var(--green);
+      }
+      .disabled-badge {
+        font-size: 0.65rem;
+        color: var(--red);
+      }
+
+      /* Checklist */
+      .checklist-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .checklist-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .checklist-content {
+        flex: 1;
+      }
+      .checklist-content h4 {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+      }
+      .checklist-content p {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      /* Collapsible */
+      .collapsible-header {
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .collapsible-header .arrow {
+        transition: transform var(--transition);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      .collapsible-header.open .arrow {
+        transform: rotate(90deg);
+      }
+      .collapsible-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      .collapsible-body.open {
+        max-height: 500px;
+      }
+      .collapsible-body-inner {
+        padding-top: 12px;
+      }
+
+      /* Code */
+      code,
+      .mono {
+        font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+        background: var(--bg-input);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        color: var(--cyan);
+      }
+      .fix-cmd {
+        display: block;
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--bg-input);
+        border-radius: var(--radius);
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: var(--cyan);
+        border-left: 3px solid var(--accent-light);
+      }
+
+      /* Filter chips */
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .chip {
+        padding: 4px 14px;
+        border-radius: 16px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-secondary);
+        font-weight: 500;
+        transition: all var(--transition);
+      }
+      .chip:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .chip.active {
+        background: var(--blue);
+        color: #fff;
+        border-color: var(--blue);
+      }
+
+      /* Two-column automation */
+      .auto-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow);
+      }
+      @media (max-width: 768px) {
+        .auto-card {
+          grid-template-columns: 1fr;
+        }
+      }
+      .auto-col h4 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+      }
+      .auto-col p {
+        font-size: 0.875rem;
+      }
+
+      /* Recommended command cards */
+      .cmd-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow);
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .cmd-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+      .cmd-body {
+        flex: 1;
+      }
+      .cmd-body h4 {
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+      }
+      .cmd-body .cmd-desc {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+      .cmd-body .cmd-benefit {
+        color: var(--green);
+        font-size: 0.8rem;
+      }
+
+      /* Charts */
+      .chart-section {
+        margin-bottom: 24px;
+      }
+      .chart-section h3 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+      @media (max-width: 768px) {
+        .chart-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .chart-box {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      /* Bonuses/deductions */
+      .score-detail {
+        margin-top: 12px;
+      }
+      .score-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        font-size: 0.8rem;
+      }
+      .score-detail-item .reason {
+        color: var(--text-secondary);
+      }
+      .score-detail-item .points-pos {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .score-detail-item .points-neg {
+        color: var(--red);
+        font-weight: 600;
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        padding: 24px 0;
+        margin-top: 32px;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+
+      /* SVG text */
+      svg text {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      .patch-code {
+        position: relative;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px 48px 12px 12px;
+        font-family: monospace;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+      .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: var(--accent);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 0.75rem;
+      }
+      .copy-btn:hover { background: var(--accent-light); }
+      .copy-btn.copied { color: var(--green); }
+
+      /* Section headings within tabs */
+      .section-heading {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+      .subsection {
+        margin-bottom: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lang-toggle">
+      <button onclick="setLang('en')" id="lang-en">EN</button>
+      <button onclick="setLang('ko')" id="lang-ko">한국어</button>
+    </div>
+    <div class="container" id="app"></div>
+
+    <script>
+      // Controller replaces {{AUDIT_DATA}} with: const AUDIT_DATA_RAW = {...};
+      const MOCK_DATA = {
+        meta: {
+          timestamp: "2026-04-06T09:32:15.000Z",
+          scope: "both",
+          version: "2.0.0",
+          analyzer: "gemini",
+          analyzerCommand: "gemini",
+          fallbackUsed: false,
+          projectPath: "/path/to/project",
+        },
+        tokenAndConfig: {
+          category: "token-and-config",
+          findings: [
+            {
+              severity: "warning",
+              category: "token-budget",
+              title: "Large global config file",
+              detail:
+                "RULES.md uses 2058 tokens (1.03% of context). Consider splitting into focused files.",
+              file: "~/.claude/RULES.md",
+              suggestion: "Break RULES.md into smaller domain-specific files",
+            },
+            {
+              severity: "info",
+              category: "token-budget",
+              title: "Project config uses transitive refs",
+              detail:
+                "CLAUDE.md references 7 files adding 13134 tokens via @-references.",
+              file: "$PWD/CLAUDE.md",
+              suggestion: "Review if all @-referenced files are necessary",
+            },
+            {
+              severity: "warning",
+              category: "permissions",
+              title: "Overbroad permission detected",
+              detail:
+                "Allow pattern '*' is too broad and may expose unintended tool access.",
+              file: "settings.json",
+              suggestion: "Use specific tool names instead of wildcards",
+            },
+            {
+              severity: "critical",
+              category: "hooks",
+              title: "Missing hook script",
+              detail:
+                "Hook references rtk-rewrite.sh but file not found at expected path.",
+              file: "~/.claude/hooks/rtk-rewrite.sh",
+              suggestion: "Verify hook script path or install rtk",
+            },
+          ],
+          metrics: {
+            globalFiles: 12,
+            globalTotalTokens: 11250,
+            globalContextPercent: 5.6,
+            projectTotalTokens: 15234,
+            projectContextPercent: 7.6,
+            combinedContextPercent: 13.2,
+            globalHooksCount: 3,
+            projectHooksCount: 4,
+            hookConflicts: 0,
+            permissionsAllowCount: 15,
+            permissionsDenyCount: 2,
+            redundantPermissions: 3,
+            overbroadPermissions: 1,
+            semanticConflicts: 0,
+            mcpDocumented: 5,
+            mcpConfigured: 4,
+            hasCustomCommands: false,
+            hasCustomAgents: false,
+            hasMemoryFiles: true,
+            customCommandsCount: 0,
+            customAgentsCount: 0,
+            missingHookScripts: 1,
+          },
+          tokenBreakdown: {
+            global: [
+              {
+                file: "~/.claude/RULES.md",
+                chars: 8234,
+                words: 1200,
+                tokens: 2058,
+                contextPercent: 1.03,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/PRINCIPLES.md",
+                chars: 4120,
+                words: 620,
+                tokens: 1030,
+                contextPercent: 0.52,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/FLAGS.md",
+                chars: 6800,
+                words: 980,
+                tokens: 1700,
+                contextPercent: 0.85,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MODE_Brainstorming.md",
+                chars: 3200,
+                words: 480,
+                tokens: 800,
+                contextPercent: 0.4,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MODE_Introspection.md",
+                chars: 2800,
+                words: 420,
+                tokens: 700,
+                contextPercent: 0.35,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MODE_Orchestration.md",
+                chars: 2400,
+                words: 360,
+                tokens: 600,
+                contextPercent: 0.3,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MODE_Task_Management.md",
+                chars: 3600,
+                words: 540,
+                tokens: 900,
+                contextPercent: 0.45,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MODE_Token_Efficiency.md",
+                chars: 2600,
+                words: 390,
+                tokens: 650,
+                contextPercent: 0.33,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MCP_Context7.md",
+                chars: 1200,
+                words: 180,
+                tokens: 300,
+                contextPercent: 0.15,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MCP_Magic.md",
+                chars: 1100,
+                words: 165,
+                tokens: 275,
+                contextPercent: 0.14,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/MCP_Serena.md",
+                chars: 1300,
+                words: 195,
+                tokens: 325,
+                contextPercent: 0.16,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "~/.claude/BUSINESS_SYMBOLS.md",
+                chars: 7120,
+                words: 1050,
+                tokens: 1912,
+                contextPercent: 0.96,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+            ],
+            project: [
+              {
+                file: "$PWD/CLAUDE.md",
+                chars: 8400,
+                tokens: 2100,
+                contextPercent: 1.05,
+                atRefs: [
+                  "docs/assistant/commands.md",
+                  "docs/assistant/architecture.md",
+                  "docs/assistant/mcp-usage.md",
+                  "docs/assistant/code-review.md",
+                  "docs/assistant/sonarqube-compliance.md",
+                  "docs/assistant/conventions.md",
+                  "docs/assistant/restrictions.md",
+                ],
+                transitiveTokens: 13134,
+              },
+              {
+                file: "$PWD/docs/assistant/commands.md",
+                chars: 2400,
+                tokens: 600,
+                contextPercent: 0.3,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/architecture.md",
+                chars: 12000,
+                tokens: 3000,
+                contextPercent: 1.5,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/mcp-usage.md",
+                chars: 4800,
+                tokens: 1200,
+                contextPercent: 0.6,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/code-review.md",
+                chars: 3600,
+                tokens: 900,
+                contextPercent: 0.45,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/sonarqube-compliance.md",
+                chars: 8800,
+                tokens: 2200,
+                contextPercent: 1.1,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/conventions.md",
+                chars: 2800,
+                tokens: 700,
+                contextPercent: 0.35,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/restrictions.md",
+                chars: 1200,
+                tokens: 300,
+                contextPercent: 0.15,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+              {
+                file: "$PWD/docs/assistant/security.md",
+                chars: 934,
+                tokens: 234,
+                contextPercent: 0.12,
+                atRefs: [],
+                transitiveTokens: 0,
+              },
+            ],
+          },
+          configMap: {
+            hooks: {
+              global: [
+                {
+                  event: "PreToolUse",
+                  matcher: "Bash",
+                  command: "rtk-rewrite.sh",
+                },
+                {
+                  event: "PreToolUse",
+                  matcher: "Write",
+                  command: "lint-check.sh",
+                },
+                {
+                  event: "PostToolUse",
+                  matcher: "Bash",
+                  command: "rtk-capture.sh",
+                },
+              ],
+              project: [
+                {
+                  event: "PostToolUse",
+                  matcher: "Edit|Write",
+                  command: "post-edit-format.js",
+                },
+                {
+                  event: "PreToolUse",
+                  matcher: "Bash",
+                  command: "security-scan.sh",
+                },
+                {
+                  event: "Notification",
+                  matcher: "*",
+                  command: "notify-slack.sh",
+                },
+                {
+                  event: "PostToolUse",
+                  matcher: "Bash",
+                  command: "log-commands.sh",
+                },
+              ],
+            },
+            mcpAlignment: {
+              documented: [
+                "Context7",
+                "Magic",
+                "Morphllm",
+                "Playwright",
+                "Serena",
+              ],
+              configured: [
+                "mcp-confluence",
+                "mcp-jira",
+                "mcp-github",
+                "mcp-sentry",
+              ],
+              documentedNotConfigured: [
+                "Context7",
+                "Magic",
+                "Morphllm",
+                "Playwright",
+                "Serena",
+              ],
+              configuredNotDocumented: [
+                "mcp-confluence",
+                "mcp-jira",
+                "mcp-github",
+                "mcp-sentry",
+              ],
+            },
+            customCommands: [],
+            customAgents: [],
+            memoryFiles: ["MEMORY.md"],
+          },
+        },
+        skillsEcosystem: {
+          category: "skills-ecosystem",
+          findings: [
+            {
+              severity: "warning",
+              category: "overlap",
+              title: "Potential duplicate: wiki skills",
+              detail:
+                "wiki@team-marketplace and wiki@webdev-marketplace have 95% overlap in trigger patterns and description.",
+              suggestion: "Disable one of the duplicate wiki skills",
+            },
+            {
+              severity: "info",
+              category: "cso-quality",
+              title: "2 skills have poor CSO descriptions",
+              detail:
+                "Skills with 'bad' CSO quality may not trigger correctly due to vague descriptions.",
+              suggestion: "Rewrite descriptions with clear trigger conditions",
+            },
+          ],
+          metrics: {
+            totalMarketplaces: 3,
+            totalPlugins: 8,
+            enabledPlugins: 5,
+            disabledPlugins: 3,
+            totalSkills: 25,
+            personalSkills: 1,
+            overlapPairs: 1,
+            csoGood: 18,
+            csoWarning: 5,
+            csoBad: 2,
+            totalDescriptionTokens: 600,
+          },
+          skillsInventory: [
+            {
+              name: "brainstorming",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description:
+                "Use when starting creative work or exploring new ideas",
+              csoQuality: "good",
+            },
+            {
+              name: "code-review",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Automated code review with best practices",
+              csoQuality: "good",
+            },
+            {
+              name: "refactor",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Intelligent code refactoring suggestions",
+              csoQuality: "good",
+            },
+            {
+              name: "test-gen",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Generate comprehensive test suites",
+              csoQuality: "good",
+            },
+            {
+              name: "docs",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Documentation generation and maintenance",
+              csoQuality: "good",
+            },
+            {
+              name: "debug",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Systematic debugging with root cause analysis",
+              csoQuality: "good",
+            },
+            {
+              name: "performance",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Performance analysis and optimization",
+              csoQuality: "good",
+            },
+            {
+              name: "security-audit",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Security vulnerability scanning",
+              csoQuality: "good",
+            },
+            {
+              name: "accessibility",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: false,
+              description: "WCAG compliance checking",
+              csoQuality: "good",
+            },
+            {
+              name: "migration",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: false,
+              description: "Framework and library migration assistance",
+              csoQuality: "warning",
+            },
+            {
+              name: "api-design",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "REST and GraphQL API design patterns",
+              csoQuality: "good",
+            },
+            {
+              name: "deploy",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Deployment automation and CI/CD",
+              csoQuality: "good",
+            },
+            {
+              name: "monitoring",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: false,
+              description: "Set up monitoring and alerting",
+              csoQuality: "warning",
+            },
+            {
+              name: "database",
+              marketplace: "superpowers-marketplace",
+              plugin: "superpowers",
+              version: "5.0.2",
+              enabled: true,
+              description: "Database schema design and query optimization",
+              csoQuality: "good",
+            },
+            {
+              name: "react-patterns",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "Modern React patterns and hooks",
+              csoQuality: "good",
+            },
+            {
+              name: "css-architect",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "CSS architecture and design systems",
+              csoQuality: "good",
+            },
+            {
+              name: "component-gen",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "Generate UI components from specs",
+              csoQuality: "good",
+            },
+            {
+              name: "a11y-check",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "Accessibility checking for web components",
+              csoQuality: "warning",
+            },
+            {
+              name: "wiki",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "Search and reference frontend documentation wikis",
+              csoQuality: "warning",
+            },
+            {
+              name: "storybook-gen",
+              marketplace: "team-marketplace",
+              plugin: "frontend-tools",
+              version: "2.1.0",
+              enabled: true,
+              description: "Generate Storybook stories for components",
+              csoQuality: "good",
+            },
+            {
+              name: "wiki",
+              marketplace: "webdev-marketplace",
+              plugin: "webdev-essentials",
+              version: "1.4.0",
+              enabled: true,
+              description: "Search and reference web development documentation",
+              csoQuality: "warning",
+            },
+            {
+              name: "bundler-config",
+              marketplace: "webdev-marketplace",
+              plugin: "webdev-essentials",
+              version: "1.4.0",
+              enabled: true,
+              description: "Webpack, Vite, and Rollup configuration",
+              csoQuality: "good",
+            },
+            {
+              name: "seo-optimize",
+              marketplace: "webdev-marketplace",
+              plugin: "webdev-essentials",
+              version: "1.4.0",
+              enabled: true,
+              description: "SEO optimization and meta tag management",
+              csoQuality: "good",
+            },
+            {
+              name: "i18n-helper",
+              marketplace: "webdev-marketplace",
+              plugin: "webdev-essentials",
+              version: "1.4.0",
+              enabled: true,
+              description: "Internationalization setup and management",
+              csoQuality: "good",
+            },
+            {
+              name: "my-claude-audit",
+              marketplace: "personal",
+              plugin: "personal",
+              version: "1.0.0",
+              enabled: true,
+              description: "Audit Claude Code configuration for optimization",
+              csoQuality: "bad",
+            },
+          ],
+          overlapPairs: [
+            {
+              skill1: "wiki@team-marketplace",
+              skill2: "wiki@webdev-marketplace",
+              overlapPercent: 95,
+              type: "duplicate-across-marketplaces",
+            },
+          ],
+          pluginDistribution: {
+            "superpowers-marketplace": 14,
+            "team-marketplace": 6,
+            "webdev-marketplace": 4,
+            personal: 1,
+          },
+        },
+        sessionAnomaly: {
+          category: "session-anomaly",
+          findings: [
+            { severity: "warning", category: "session-anomaly", title: "Context hoarding detected", detail: "Session mock-001 ran 32 turns without /clear.", suggestion: "Use /clear when switching tasks" },
+            { severity: "warning", category: "session-anomaly", title: "Blind follow pattern", detail: "Only 20% of code outputs were verified before next request.", suggestion: "Run tests after each code generation" },
+          ],
+          metrics: { sessionsAnalyzed: 3, totalTurns: 87, avgPromptLength: 52, anomalyTags: ["TAG_CTX_HOARD", "TAG_BLIND_FOLLOW", "TAG_SILENT_FIX"] },
+          sessionBreakdown: [
+            { sessionId: "mock-001", turns: 32, anomalies: ["TAG_CTX_HOARD", "TAG_SILENT_FIX"], stats: { user_input_avg_len: 38, max_gap_without_clear: 32, machine_text_ratio: 0.05, verification_rate: 0.2 } },
+            { sessionId: "mock-002", turns: 28, anomalies: ["TAG_BLIND_FOLLOW"], stats: { user_input_avg_len: 65, max_gap_without_clear: 12, machine_text_ratio: 0.1, verification_rate: 0.15 } },
+            { sessionId: "mock-003", turns: 27, anomalies: [], stats: { user_input_avg_len: 54, max_gap_without_clear: 8, machine_text_ratio: 0.02, verification_rate: 0.6 } },
+          ],
+        },
+        insights: {
+          category: "insights",
+          findings: [
+            {
+              severity: "info",
+              category: "missed-command",
+              title: "Consider /clear command",
+              detail:
+                "You have not used /clear recently. It fully resets context and can help when the window fills up.",
+              suggestion: "Use /clear when context exceeds 80%",
+            },
+            {
+              severity: "warning",
+              category: "feature-gap",
+              title: "No custom commands defined",
+              detail:
+                "Custom commands let you create reusable workflows triggered by /project: or /user: prefixes.",
+              suggestion: "Create ~/.claude/commands/ directory with .md files",
+            },
+            {
+              severity: "warning",
+              category: "feature-gap",
+              title: "No custom agents configured",
+              detail:
+                "Custom agents allow specialized sub-agents for specific tasks like code review or testing.",
+              suggestion: "Define agents in .claude/agents/ directory",
+            },
+          ],
+          optimizationScore: {
+            total: 62,
+            label: "Good",
+            breakdown: {
+              tokenEfficiency: 80,
+              configHealth: 85,
+              ecosystemHealth: 70,
+              featureUtilization: 35,
+              automationLevel: 55,
+              crossLayerHarmony: 80,
+            },
+            bonuses: [
+              { reason: "Token budget under 10% per layer", points: 8 },
+              { reason: "Memory files configured", points: 3 },
+              { reason: "Zero semantic conflicts", points: 5 },
+            ],
+            deductions: [
+              { reason: "No custom commands defined", points: -3 },
+              { reason: "No custom agents configured", points: -3 },
+              { reason: "Overbroad permissions detected", points: -5 },
+              { reason: "Missing hook script files", points: -4 },
+              { reason: "MCP documentation/config mismatch", points: -5 },
+            ],
+          },
+          missedCommands: [
+            {
+              command: "/clear",
+              description: "Fully resets conversation context",
+              benefit: "Frees entire context window when it gets full",
+              fix: "/clear",
+            },
+            {
+              command: "/compact",
+              description: "Summarizes and compresses current context",
+              benefit: "Reduces token usage by ~50% while retaining key info",
+              fix: "/compact",
+            },
+            {
+              command: "/memory",
+              description: "Manage persistent memory across sessions",
+              benefit: "Enables cross-session learning and context retention",
+              fix: "/memory",
+            },
+          ],
+          automationOpportunities: [
+            {
+              current: "Manual code review after edits",
+              suggested: "PostToolUse hook on Edit|Write",
+              effort: "medium",
+              benefit: "Automatic lint + format on every edit",
+            },
+            {
+              current: "Manual security check before deploy",
+              suggested: "PreToolUse hook on Bash for deploy commands",
+              effort: "easy",
+              benefit: "Block accidental secret exposure in deploys",
+            },
+            {
+              current: "Manual test running",
+              suggested: "PostToolUse hook with test runner",
+              effort: "hard",
+              benefit: "Auto-run affected tests on file changes",
+            },
+          ],
+          crossLayerInsights: [
+            {
+              type: "overlap",
+              title: "Code review rules duplicated across layers",
+              global: "~/.claude/RULES.md (Code Review section)",
+              project: "$PWD/docs/assistant/code-review.md",
+              suggestion:
+                "Move project-specific review rules to project only; keep global rules generic",
+            },
+            {
+              type: "complement",
+              title: "Global hooks complement project hooks well",
+              global: "PreToolUse: rtk-rewrite.sh (Bash)",
+              project: "PostToolUse: post-edit-format.js (Edit|Write)",
+              suggestion: "No action needed - good separation of concerns",
+            },
+          ],
+          sessionInsights: {
+            status: "토큰을 불태워 난로를 떼는 원시인 수준이군요.",
+            criticalIssues: [
+              { tag: "TAG_CTX_HOARD", critique: "세션을 32턴이나 끌고 가는 건 모델의 지능을 깎아먹겠다는 선전포고인가요? 당신의 월급이 토큰 비용으로 나가고 있지 않음에 감사하십시오.", evidence: "Session mock-001: 32 turns, 0 /clear calls" },
+              { tag: "TAG_BLIND_FOLLOW", critique: "코드 생성 후 검증 비율이 20%? AI가 만든 코드를 무검증으로 받아들이는 건 복붙 원숭이와 다를 바 없습니다.", evidence: "3 sessions avg verification rate: 0.32" },
+              { tag: "TAG_SILENT_FIX", critique: "'고쳐줘' 한 마디에 무엇을 기대하시나요? 최소한 어떤 동작이 잘못되었고 어떤 결과를 원하는지 명시하십시오.", evidence: "Session mock-001: 45% of prompts under 30 chars" },
+            ],
+            prescription: "당장 /clear 하세요. 매 작업 전환 시 반드시 실행하십시오. 그리고 코드를 받으면 반드시 테스트를 실행하십시오.",
+            anomalyTagsSummary: ["TAG_CTX_HOARD", "TAG_BLIND_FOLLOW", "TAG_SILENT_FIX"],
+            instructionPatches: [
+              { targetProblem: "컨텍스트 비대화", triggerTag: "TAG_CTX_HOARD", principle: "강제 세션 위생 관리", patch: "- [조건]: 대화가 15턴을 초과할 경우.\n- [행동]: 사용자에게 세션 요약 후 /clear 할 것을 강력히 권고하십시오. 20턴 초과 시 매 응답 앞에 경고를 표시하십시오.", scenario: "20턴 이상 대화 지속 시 → 자동 경고 + /clear 권유" },
+              { targetProblem: "무검증 코드 수용", triggerTag: "TAG_BLIND_FOLLOW", principle: "코드 생성 후 검증 게이트", patch: "- [조건]: 코드를 생성한 직후, 사용자가 테스트나 실행 없이 바로 다음 구현을 요청할 경우.\n- [행동]: '이전 변경사항을 먼저 검증하셨나요? npm test 또는 관련 명령을 실행해 주세요'라고 요청하십시오.", scenario: "코드 생성 → 즉시 다음 요청 시 → 검증 요구" },
+              { targetProblem: "모호한 수정 요청", triggerTag: "TAG_SILENT_FIX", principle: "의도 확인 강제", patch: "- [조건]: 의도가 불분명한 '고쳐줘', '수정해', '바꿔봐' 등 30자 미만의 수정 요청.\n- [행동]: '어떤 부작용을 고려해야 하는지, 기대하는 결과가 무엇인지' 되물으십시오.", scenario: "'고쳐줘' 단답 입력 시 → 맥락 질문" },
+            ],
+          },
+          recommendations: [
+            {
+              severity: "critical",
+              title: "Fix missing hook script",
+              description:
+                "rtk-rewrite.sh is referenced but not found. Hook will fail silently.",
+              action: "Install rtk or update hook path",
+              effort: "easy",
+              fix: "which rtk && ln -s $(which rtk) ~/.claude/hooks/rtk-rewrite.sh",
+            },
+            {
+              severity: "warning",
+              title: "Create custom commands",
+              description:
+                "No custom commands found. Commands automate common workflows.",
+              action: "Create command files in ~/.claude/commands/",
+              effort: "easy",
+              fix: "mkdir -p ~/.claude/commands && echo '# My command' > ~/.claude/commands/review.md",
+            },
+            {
+              severity: "warning",
+              title: "Create custom agents",
+              description:
+                "No custom agents configured. Agents enable specialized sub-agent delegation.",
+              action: "Define agents in .claude/agents/ directory",
+              effort: "medium",
+              fix: "mkdir -p .claude/agents && echo 'name: reviewer' > .claude/agents/reviewer.yml",
+            },
+            {
+              severity: "warning",
+              title: "Narrow overbroad permissions",
+              description:
+                "Wildcard '*' in allow list grants access to all tools without restriction.",
+              action: "Replace wildcards with specific tool names",
+              effort: "easy",
+              fix: "Edit settings.json: replace '*' with ['Bash','Read','Write','Edit','Glob','Grep']",
+            },
+            {
+              severity: "warning",
+              title: "Align MCP documentation with configuration",
+              description:
+                "5 MCPs documented but not configured; 4 configured but not documented.",
+              action: "Add missing MCP configs or document configured ones",
+              effort: "medium",
+              fix: "Review .claude/settings.json mcpServers and sync with CLAUDE.md docs",
+            },
+            {
+              severity: "info",
+              title: "Remove redundant permissions",
+              description:
+                "3 permission entries are redundant (duplicated or covered by broader rules).",
+              action: "Deduplicate permission entries",
+              effort: "easy",
+              fix: "Review and consolidate settings.json permissions",
+            },
+          ],
+        },
+      };
+
+      const data =
+        typeof AUDIT_DATA_RAW !== "undefined" ? AUDIT_DATA_RAW : MOCK_DATA;
+
+      // ── i18n ──
+      const i18n = {
+        en: {
+          title: "Claude Code Configuration Audit",
+          subtitle: "Comprehensive analysis of your Claude Code setup",
+          scope: "Scope",
+          optimizationScore: "OPTIMIZATION SCORE",
+          filesScanned: "Files Scanned",
+          totalTokens: "Total Tokens",
+          critical: "Critical",
+          warnings: "Warnings",
+          info: "Info",
+          tabTokens: "Token Analysis",
+          tabSkills: "Skills Ecosystem",
+          tabConfig: "Config Health",
+          tabTips: "Improvement Tips",
+          tokenBudgetAnalysis: "Token Budget Analysis",
+          tokenUsageByFile: "Token Usage by File",
+          contextDistribution: "Context Distribution",
+          used: "used",
+          fileDetails: "File Details",
+          file: "FILE",
+          layer: "LAYER",
+          chars: "CHARS",
+          tokens: "TOKENS",
+          contextPercent: "% CONTEXT",
+          atRefs: "@REFS",
+          tokenFindings: "Token Findings",
+          suggestion: "Suggestion",
+          skillsEcosystem: "Skills Ecosystem",
+          totalSkills: "Total Skills",
+          plugins: "Plugins",
+          enabled: "Enabled",
+          disabled: "Disabled",
+          csoGood: "CSO Good",
+          csoWarn: "CSO Warn",
+          csoBad: "CSO Bad",
+          overlapWarnings: "Overlap Warnings",
+          pluginDistribution: "Plugin Distribution",
+          skillInventory: "Skill Inventory",
+          configHealth: "Configuration Health",
+          permissions: "Permissions",
+          hooks: "Hooks",
+          semanticConflicts: "Semantic Conflicts",
+          mcpAlignment: "MCP Alignment",
+          structure: "Structure",
+          noOverbroadPerms: "No overbroad permissions",
+          allPermsScoped: "All permissions are properly scoped",
+          overbroadFound: "overbroad permission(s) found",
+          noRedundantPerms: "No redundant permissions",
+          noDuplicatePerms: "No duplicate permission entries",
+          redundantFound: "redundant permission(s) found",
+          allowListConfigured: "Allow list configured",
+          allowRules: "allow rules",
+          denyRules: "deny rules",
+          noHookConflicts: "No hook conflicts",
+          hooksNoConflict: "Global and project hooks do not conflict",
+          hookConflictsFound: "hook conflict(s) detected",
+          allHookScriptsExist: "All hook scripts exist",
+          allScriptsPresent: "All referenced hook scripts are present",
+          missingScripts: "missing hook script(s)",
+          hooksConfigured: "Hooks configured",
+          globalHooks: "global hooks",
+          projectHooks: "project hooks",
+          hookDetails: "Hook Details",
+          noSemanticConflicts: "No semantic conflicts",
+          configsAligned: "Global and project configs are semantically aligned",
+          semanticConflictsFound: "semantic conflict(s) found between layers",
+          docMatchesConfig: "Documentation matches configuration",
+          documented: "documented",
+          configured: "configured",
+          documentedNotConfigured: "Documented but not configured",
+          configuredNotDocumented: "Configured but not documented",
+          customCommands: "Custom commands",
+          commandsDefined: "commands defined",
+          noCommandsFound: "No custom commands found",
+          customAgents: "Custom agents",
+          agentsDefined: "agents defined",
+          noAgentsFound: "No custom agents found",
+          memoryFiles: "Memory files",
+          found: "Found",
+          noMemoryFound: "No memory files found",
+          crossLayerInsights: "Cross-Layer Insights",
+          global: "Global",
+          project: "Project",
+          recommendedCommands: "Commands You Might Not Know",
+          recommendedCommandsDesc:
+            "Claude Code commands and features that could enhance your workflow — you might not know about these yet.",
+          automationOpportunities: "Automation Opportunities",
+          automationDesc:
+            "Manual workflows that could be automated with hooks or commands.",
+          currentManual: "Current (Manual)",
+          suggestedAutomated: "Suggested (Automated)",
+          recommendations: "Recommendations",
+          filter: "Filter",
+          all: "All",
+          action: "Action",
+          scannedAt: "Scanned",
+          score: "Score",
+          excellent: "Excellent",
+          good: "Good",
+          fair: "Fair",
+          needsAttention: "Needs Attention",
+          dimTokenEff: "Token Eff.",
+          dimConfig: "Config",
+          dimEcosystem: "Ecosystem",
+          dimFeatures: "Features",
+          dimAutomation: "Automation",
+          dimHarmony: "Harmony",
+          analyzedBy: "Analyzed by",
+          tabSession: "Session Analysis",
+          tabPatches: "Instruction Patches",
+          sessionAnalysis: "Session Analysis",
+          sessionStatus: "Status",
+          sessionCritical: "Critical Issues",
+          sessionPrescription: "Prescription",
+          sessionBreakdown: "Session Breakdown",
+          anomalyTags: "Anomaly Tags",
+          sessionsAnalyzed: "Sessions Analyzed",
+          totalTurns: "Total Turns",
+          avgPromptLen: "Avg Prompt Length",
+          verificationRate: "Verification Rate",
+          instructionPatches: "Instruction Patches",
+          patchesDesc: "Enforceable instructions to prevent detected bad habits. Copy and append to your CLAUDE.md.",
+          targetProblem: "Target Problem",
+          triggerTag: "Trigger",
+          patchContent: "Patch",
+          applyHint: "Apply to CLAUDE.md",
+          scenario: "Scenario",
+          noSessionData: "No session data available",
+          copied: "Copied!",
+          fallbackUsed: "Fallback to Claude Code was used",
+          configHealthDesc: "Health check of your Claude Code configuration layers",
+          permDesc: "Checks if permission rules are too broad (e.g., Bash(*)) or duplicated across layers",
+          hookDesc: "Validates hook scripts exist and checks for conflicts between global and project hooks",
+          semanticDesc: "Detects contradictory instructions across config files (e.g., 'always use X' vs 'never use X')",
+          mcpDesc: "Compares MCP documentation files with actual server configurations",
+          structureDesc: "Checks for custom commands, agents, and memory file setup",
+          tipsDesc: "Actionable improvements for your Claude Code setup",
+          sectionCommands: "Commands You Might Not Know",
+          sectionAutomation: "Automation Opportunities",
+          sectionRecommendations: "Recommendations",
+          copyBtn: "Copy",
+          sessionId: "Session ID",
+          tokenAnalysisDesc: "Analyzes how much of Claude's context window is consumed by your configuration files. Files over 5,000 tokens are flagged as oversized.",
+          tokenUsageDesc: "Token consumption per file. Taller bars = more context consumed at session start.",
+          contextDistDesc: "How the 200K token context window is divided between your configs and available space.",
+          fileDetailsDesc: "Per-file breakdown. @REFS shows files loaded via @-import chains, adding to the parent file's cost.",
+          tokenFindingsDesc: "Issues found during token analysis — oversized files, deep @-chains, or high context usage.",
+          skillsEcoDesc: "Overview of installed skills, plugins, and their quality. CSO (Claude Search Optimization) measures how well skill descriptions trigger activation.",
+          overlapDesc: "Skills with similar descriptions or duplicate installations across marketplaces. Consider removing duplicates to reduce confusion.",
+          csoDesc: "CSO Good: description starts with trigger conditions. CSO Warn: vague description. CSO Bad: empty or too long.",
+          patchSuggestion: "Consider adding this instruction to your CLAUDE.md:",
+          projectLabel: "Project",
+        },
+        ko: {
+          title: "Claude Code 설정 감사",
+          subtitle: "Claude Code 설정의 종합 분석",
+          scope: "범위",
+          optimizationScore: "최적화 점수",
+          filesScanned: "스캔된 파일",
+          totalTokens: "전체 토큰",
+          critical: "심각",
+          warnings: "경고",
+          info: "정보",
+          tabTokens: "토큰 분석",
+          tabSkills: "스킬 생태계",
+          tabConfig: "설정 상태",
+          tabTips: "추가 개선 Tips",
+          tokenBudgetAnalysis: "토큰 예산 분석",
+          tokenUsageByFile: "파일별 토큰 사용량",
+          contextDistribution: "컨텍스트 분포",
+          used: "사용 중",
+          fileDetails: "파일 상세",
+          file: "파일",
+          layer: "계층",
+          chars: "문자 수",
+          tokens: "토큰",
+          contextPercent: "컨텍스트 %",
+          atRefs: "@참조",
+          tokenFindings: "토큰 관련 발견사항",
+          suggestion: "제안",
+          skillsEcosystem: "스킬 생태계",
+          totalSkills: "전체 스킬",
+          plugins: "플러그인",
+          enabled: "활성화",
+          disabled: "비활성화",
+          csoGood: "CSO 양호",
+          csoWarn: "CSO 주의",
+          csoBad: "CSO 불량",
+          overlapWarnings: "중복 경고",
+          pluginDistribution: "플러그인 분포",
+          skillInventory: "스킬 목록",
+          configHealth: "설정 상태",
+          permissions: "권한",
+          hooks: "훅",
+          semanticConflicts: "의미적 충돌",
+          mcpAlignment: "MCP 정렬",
+          structure: "구조",
+          noOverbroadPerms: "과도한 권한 없음",
+          allPermsScoped: "모든 권한이 적절히 범위 지정됨",
+          overbroadFound: "개의 과도한 권한 발견",
+          noRedundantPerms: "중복 권한 없음",
+          noDuplicatePerms: "중복된 권한 항목 없음",
+          redundantFound: "개의 중복 권한 발견",
+          allowListConfigured: "허용 목록 설정됨",
+          allowRules: "허용 규칙",
+          denyRules: "거부 규칙",
+          noHookConflicts: "훅 충돌 없음",
+          hooksNoConflict: "전역 및 프로젝트 훅 간 충돌 없음",
+          hookConflictsFound: "개의 훅 충돌 감지",
+          allHookScriptsExist: "모든 훅 스크립트 존재",
+          allScriptsPresent: "참조된 모든 훅 스크립트가 존재합니다",
+          missingScripts: "개의 누락된 훅 스크립트",
+          hooksConfigured: "훅 설정됨",
+          globalHooks: "전역 훅",
+          projectHooks: "프로젝트 훅",
+          hookDetails: "훅 상세",
+          noSemanticConflicts: "의미적 충돌 없음",
+          configsAligned: "전역 및 프로젝트 설정이 의미적으로 정렬됨",
+          semanticConflictsFound: "개의 의미적 충돌 발견",
+          docMatchesConfig: "문서와 설정이 일치",
+          documented: "문서화됨",
+          configured: "설정됨",
+          documentedNotConfigured: "문서화됐지만 미설정",
+          configuredNotDocumented: "설정됐지만 미문서화",
+          customCommands: "사용자 정의 커맨드",
+          commandsDefined: "개의 커맨드 정의됨",
+          noCommandsFound: "사용자 정의 커맨드 없음",
+          customAgents: "사용자 정의 에이전트",
+          agentsDefined: "개의 에이전트 정의됨",
+          noAgentsFound: "사용자 정의 에이전트 없음",
+          memoryFiles: "메모리 파일",
+          found: "발견",
+          noMemoryFound: "메모리 파일 없음",
+          crossLayerInsights: "계층 간 인사이트",
+          global: "전역",
+          project: "프로젝트",
+          recommendedCommands: "놓치고 있는 커맨드",
+          recommendedCommandsDesc:
+            "아직 활용하지 않고 있는 Claude Code 커맨드와 기능입니다.",
+          automationOpportunities: "자동화 기회",
+          automationDesc: "훅이나 커맨드로 자동화할 수 있는 수동 작업입니다.",
+          currentManual: "현재 (수동)",
+          suggestedAutomated: "제안 (자동화)",
+          recommendations: "개선 사항",
+          filter: "필터",
+          all: "전체",
+          action: "조치",
+          scannedAt: "스캔 시각",
+          score: "점수",
+          excellent: "우수",
+          good: "양호",
+          fair: "보통",
+          needsAttention: "개선 필요",
+          dimTokenEff: "토큰 효율",
+          dimConfig: "설정",
+          dimEcosystem: "생태계",
+          dimFeatures: "기능",
+          dimAutomation: "자동화",
+          dimHarmony: "조화",
+          analyzedBy: "분석 모델",
+          tabSession: "세션 분석",
+          tabPatches: "지침 패치",
+          sessionAnalysis: "세션 분석",
+          sessionStatus: "진단",
+          sessionCritical: "핵심 문제",
+          sessionPrescription: "처방",
+          sessionBreakdown: "세션별 상세",
+          anomalyTags: "이상 패턴 태그",
+          sessionsAnalyzed: "분석된 세션",
+          totalTurns: "총 턴 수",
+          avgPromptLen: "평균 프롬프트 길이",
+          verificationRate: "검증 비율",
+          instructionPatches: "지침 패치",
+          patchesDesc: "감지된 나쁜 습관을 방지하는 강제 지침입니다. 복사하여 CLAUDE.md에 추가하세요.",
+          targetProblem: "대상 문제",
+          triggerTag: "트리거",
+          patchContent: "패치 내용",
+          applyHint: "CLAUDE.md에 적용",
+          scenario: "시나리오",
+          noSessionData: "세션 데이터 없음",
+          copied: "복사됨!",
+          fallbackUsed: "Claude Code 폴백이 사용됨",
+          configHealthDesc: "Claude Code 설정 레이어의 건강 상태 점검",
+          permDesc: "권한 규칙이 과도하게 넓거나(예: Bash(*)) 레이어 간 중복되는지 검사",
+          hookDesc: "훅 스크립트 존재 여부 확인 및 전역/프로젝트 훅 간 충돌 검사",
+          semanticDesc: "설정 파일 간 모순되는 지시사항 감지 (예: '항상 X 사용' vs '절대 X 금지')",
+          mcpDesc: "MCP 문서 파일과 실제 서버 설정 간 불일치 비교",
+          structureDesc: "사용자 정의 커맨드, 에이전트, 메모리 파일 설정 확인",
+          tipsDesc: "Claude Code 설정을 개선할 수 있는 실행 가능한 제안",
+          sectionCommands: "놓치고 있는 커맨드",
+          sectionAutomation: "자동화 기회",
+          sectionRecommendations: "개선 사항",
+          copyBtn: "복사",
+          sessionId: "세션 ID",
+          tokenAnalysisDesc: "Claude의 컨텍스트 윈도우(200K 토큰) 중 설정 파일이 차지하는 비중을 분석합니다. 5,000 토큰을 초과하는 파일은 과대 용량으로 표시됩니다.",
+          tokenUsageDesc: "파일별 토큰 사용량입니다. 막대가 길수록 세션 시작 시 더 많은 컨텍스트를 소비합니다.",
+          contextDistDesc: "200K 토큰 컨텍스트 윈도우가 설정과 가용 공간으로 어떻게 나뉘는지 보여줍니다.",
+          fileDetailsDesc: "파일별 상세 분석입니다. @참조 열은 @-import 체인으로 추가 로드되는 파일과 그 토큰 비용을 표시합니다.",
+          tokenFindingsDesc: "토큰 분석 중 발견된 문제 — 과대 용량 파일, 깊은 @-체인, 높은 컨텍스트 사용률 등.",
+          skillsEcoDesc: "설치된 스킬과 플러그인의 개요입니다. CSO(Claude Search Optimization)는 스킬 설명이 활성화 트리거를 얼마나 잘 정의하는지 측정합니다.",
+          overlapDesc: "유사한 설명을 가진 스킬이나 여러 마켓플레이스에 중복 설치된 스킬입니다. 혼란을 줄이기 위해 중복을 제거하는 것을 검토하세요.",
+          csoDesc: "CSO 양호: 트리거 조건으로 시작하는 설명. CSO 주의: 모호한 설명. CSO 불량: 비어있거나 너무 긴 설명.",
+          patchSuggestion: "다음과 같은 프롬프트 지침을 CLAUDE.md에 추가하는 것을 검토해보세요:",
+          projectLabel: "프로젝트",
+        },
+      };
+
+      let currentLang = navigator.language.startsWith("ko") ? "ko" : "en";
+
+      function t(key) {
+        return i18n[currentLang][key] || i18n["en"][key] || key;
+      }
+
+      function setLang(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        document
+          .getElementById("lang-en")
+          .classList.toggle("active", lang === "en");
+        document
+          .getElementById("lang-ko")
+          .classList.toggle("active", lang === "ko");
+        render();
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("lang-" + currentLang).classList.add("active");
+      });
+
+      // ── Utility functions ──
+      function esc(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+      const TAG_LABELS = {
+        en: {
+          TAG_CTX_HOARD: "Context Bloat",
+          TAG_BLIND_FOLLOW: "Unverified Code",
+          TAG_SILENT_FIX: "Vague Fix Request",
+          TAG_ERR_DUMP: "Log Bomb",
+          TAG_ONESHOT_WAR: "Multi-File Blast",
+        },
+        ko: {
+          TAG_CTX_HOARD: "컨텍스트 비대화",
+          TAG_BLIND_FOLLOW: "무검증 코드 수용",
+          TAG_SILENT_FIX: "모호한 수정 요청",
+          TAG_ERR_DUMP: "로그 폭탄",
+          TAG_ONESHOT_WAR: "다중 파일 동시 수정",
+        },
+      };
+      function tagLabel(tag) {
+        return (TAG_LABELS[currentLang] && TAG_LABELS[currentLang][tag]) || tag;
+      }
+      function shortFile(f) {
+        return f.replace(/.*\//, "");
+      }
+      function scoreColor(s) {
+        if (s >= 85) return "var(--green)";
+        if (s >= 70) return "var(--blue)";
+        if (s >= 50) return "var(--yellow)";
+        return "var(--red)";
+      }
+      function scoreLabel(s) {
+        if (s >= 85) return t("excellent");
+        if (s >= 70) return t("good");
+        if (s >= 50) return t("fair");
+        return t("needsAttention");
+      }
+      function sevClass(s) {
+        if (s === "critical") return "badge-critical";
+        if (s === "warning") return "badge-warning";
+        return "badge-info";
+      }
+      function effortClass(e) {
+        if (e === "easy") return "effort-easy";
+        if (e === "medium") return "effort-medium";
+        return "effort-hard";
+      }
+      function sevOrder(s) {
+        return s === "critical" ? 0 : s === "warning" ? 1 : 2;
+      }
+
+      const mpColors = {
+        "superpowers-marketplace": "#9c27b0",
+        "team-marketplace": "#2196f3",
+        "webdev-marketplace": "#009688",
+        personal: "#ff9800",
+      };
+      function mpColor(mp) {
+        return mpColors[mp] || "var(--accent)";
+      }
+
+      // ── SVG builders ──
+      function buildGauge(score, size) {
+        size = size || 180;
+        const cx = size / 2,
+          cy = size / 2,
+          r = size / 2 - 16;
+        const circ = 2 * Math.PI * r;
+        const offset = circ - (score / 100) * circ;
+        const color = scoreColor(score);
+        return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="10"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+      stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+      stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"
+      style="transition: stroke-dashoffset 0.8s ease"/>
+    <text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="${color}" font-size="36" font-weight="700">${score}</text>
+    <text x="${cx}" y="${cy + 16}" text-anchor="middle" fill="var(--text-secondary)" font-size="13">${scoreLabel(score)}</text>
+  </svg>`;
+      }
+
+      function buildRadar(breakdown, size) {
+        size = size || 300;
+        const pad = 60;
+        const full = size + pad * 2;
+        const cx = full / 2,
+          cy = full / 2,
+          r = size / 2 - 20;
+        const dims = Object.keys(breakdown);
+        const n = dims.length;
+        const labels = {
+          tokenEfficiency: t("dimTokenEff"),
+          configHealth: t("dimConfig"),
+          ecosystemHealth: t("dimEcosystem"),
+          featureUtilization: t("dimFeatures"),
+          automationLevel: t("dimAutomation"),
+          crossLayerHarmony: t("dimHarmony"),
+        };
+
+        function polar(i, val) {
+          const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+          const dist = (val / 100) * r;
+          return {
+            x: cx + dist * Math.cos(angle),
+            y: cy + dist * Math.sin(angle),
+          };
+        }
+
+        let svg = `<svg width="${full}" height="${full}" viewBox="0 0 ${full} ${full}">`;
+
+        // Grid rings
+        for (let ring = 20; ring <= 100; ring += 20) {
+          let pts = [];
+          for (let i = 0; i < n; i++) {
+            const p = polar(i, ring);
+            pts.push(`${p.x},${p.y}`);
+          }
+          svg += `<polygon points="${pts.join(" ")}" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
+        }
+
+        // Axis lines
+        for (let i = 0; i < n; i++) {
+          const p = polar(i, 100);
+          svg += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="var(--border)" stroke-width="0.5"/>`;
+        }
+
+        // Data polygon
+        let dataPts = [];
+        for (let i = 0; i < n; i++) {
+          const p = polar(i, breakdown[dims[i]]);
+          dataPts.push(`${p.x},${p.y}`);
+        }
+        svg += `<polygon points="${dataPts.join(" ")}" fill="rgba(33,150,243,0.15)" stroke="var(--blue)" stroke-width="2"/>`;
+
+        // Dots + labels
+        for (let i = 0; i < n; i++) {
+          const p = polar(i, breakdown[dims[i]]);
+          svg += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--blue)"/>`;
+          const lp = polar(i, 125);
+          const anchor =
+            lp.x < cx - 10 ? "end" : lp.x > cx + 10 ? "start" : "middle";
+          svg += `<text x="${lp.x}" y="${lp.y + 4}" text-anchor="${anchor}" fill="var(--text-secondary)" font-size="11">${labels[dims[i]] || dims[i]}</text>`;
+          // Value
+          const vp = polar(
+            i,
+            breakdown[dims[i]] + (breakdown[dims[i]] > 80 ? -12 : 12),
+          );
+          svg += `<text x="${vp.x}" y="${vp.y + 4}" text-anchor="middle" fill="var(--text-primary)" font-size="9" font-weight="600">${breakdown[dims[i]]}</text>`;
+        }
+
+        svg += "</svg>";
+        return svg;
+      }
+
+      function buildBarChart(globalFiles, projectFiles) {
+        const all = [
+          ...globalFiles.map((f) => ({ ...f, layer: "global" })),
+          ...projectFiles.map((f) => ({ ...f, layer: "project" })),
+        ];
+        const maxTokens = Math.max(
+          ...all.map((f) => f.tokens + (f.transitiveTokens || 0)),
+          1,
+        );
+        const barH = 24,
+          gap = 4,
+          labelW = 180,
+          chartW = 500,
+          padR = 60;
+        const totalH = all.length * (barH + gap) + 60;
+
+        function barColor(tokens) {
+          if (tokens > 5000) return "var(--red)";
+          if (tokens > 1000) return "var(--yellow)";
+          return "var(--green)";
+        }
+
+        let svg = `<svg width="100%" viewBox="0 0 ${labelW + chartW + padR} ${totalH}" style="max-width:100%">`;
+        let y = 10;
+        let lastLayer = "";
+
+        all.forEach((f) => {
+          if (f.layer !== lastLayer) {
+            svg += `<text x="0" y="${y + 14}" fill="var(--text-muted)" font-size="11" font-weight="600">${f.layer.toUpperCase()}</text>`;
+            y += 22;
+            lastLayer = f.layer;
+          }
+          const name = shortFile(f.file);
+          const w = (f.tokens / maxTokens) * chartW;
+          const tw = f.transitiveTokens
+            ? (f.transitiveTokens / maxTokens) * chartW
+            : 0;
+
+          svg += `<text x="10" y="${y + 16}" fill="var(--text-secondary)" font-size="10">${esc(name)}</text>`;
+          svg += `<rect x="${labelW}" y="${y + 2}" width="${w}" height="${barH - 4}" rx="3" fill="${barColor(f.tokens)}" opacity="0.85"/>`;
+          if (tw > 0) {
+            svg += `<rect x="${labelW + w}" y="${y + 2}" width="${tw}" height="${barH - 4}" rx="0 3 3 0" fill="${barColor(f.tokens + f.transitiveTokens)}" opacity="0.4"/>`;
+          }
+          const totalTk = f.tokens + (f.transitiveTokens || 0);
+          svg += `<text x="${labelW + w + tw + 4}" y="${y + 16}" fill="var(--text-secondary)" font-size="9">${totalTk.toLocaleString()}</text>`;
+          y += barH + gap;
+        });
+
+        // Legend
+        y += 10;
+        svg += `<rect x="${labelW}" y="${y}" width="12" height="12" rx="2" fill="var(--green)"/>`;
+        svg += `<text x="${labelW + 16}" y="${y + 10}" fill="var(--text-muted)" font-size="9">&lt;1K</text>`;
+        svg += `<rect x="${labelW + 55}" y="${y}" width="12" height="12" rx="2" fill="var(--yellow)"/>`;
+        svg += `<text x="${labelW + 71}" y="${y + 10}" fill="var(--text-muted)" font-size="9">1-5K</text>`;
+        svg += `<rect x="${labelW + 112}" y="${y}" width="12" height="12" rx="2" fill="var(--red)"/>`;
+        svg += `<text x="${labelW + 128}" y="${y + 10}" fill="var(--text-muted)" font-size="9">&gt;5K</text>`;
+        svg += `<rect x="${labelW + 165}" y="${y}" width="12" height="12" rx="2" fill="var(--yellow)" opacity="0.4"/>`;
+        svg += `<text x="${labelW + 181}" y="${y + 10}" fill="var(--text-muted)" font-size="9">@refs</text>`;
+
+        svg += "</svg>";
+        return svg;
+      }
+
+      function buildPieChart(size) {
+        size = size || 220;
+        const m = data.tokenAndConfig.metrics;
+        const total = 200000; // ~200K context
+        const slices = [
+          {
+            label: "Global Config",
+            value: m.globalTotalTokens,
+            color: "var(--blue)",
+          },
+          {
+            label: "Project Config",
+            value: m.projectTotalTokens,
+            color: "var(--purple)",
+          },
+          {
+            label: "Skill Descriptions",
+            value: data.skillsEcosystem.metrics.totalDescriptionTokens,
+            color: "var(--teal)",
+          },
+          {
+            label: "Available",
+            value:
+              total -
+              m.globalTotalTokens -
+              m.projectTotalTokens -
+              data.skillsEcosystem.metrics.totalDescriptionTokens,
+            color: "var(--border)",
+          },
+        ];
+        const cx = size / 2,
+          cy = size / 2,
+          r = size / 2 - 30;
+        let svg = `<svg width="${size}" height="${size + 100}" viewBox="0 0 ${size} ${size + 100}">`;
+        let cumAngle = -Math.PI / 2;
+
+        slices.forEach((s) => {
+          const angle = (s.value / total) * 2 * Math.PI;
+          const x1 = cx + r * Math.cos(cumAngle);
+          const y1 = cy + r * Math.sin(cumAngle);
+          cumAngle += angle;
+          const x2 = cx + r * Math.cos(cumAngle);
+          const y2 = cy + r * Math.sin(cumAngle);
+          const large = angle > Math.PI ? 1 : 0;
+          svg += `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${s.color}" opacity="0.8"/>`;
+        });
+
+        // Center text
+        const usedPct = (
+          ((m.globalTotalTokens +
+            m.projectTotalTokens +
+            data.skillsEcosystem.metrics.totalDescriptionTokens) /
+            total) *
+          100
+        ).toFixed(1);
+        svg += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="var(--text-primary)" font-size="16" font-weight="700">${usedPct}%</text>`;
+        svg += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" fill="var(--text-muted)" font-size="9">${t("used")}</text>`;
+
+        // Legend
+        let ly = size + 4;
+        slices.forEach((s, i) => {
+          const lx = i < 2 ? 10 : size / 2 + 10;
+          const lly = i % 2 === 0 ? ly : ly + 16;
+          if (i === 2) ly = size + 4;
+          const row = Math.floor(i / 2);
+          const col = i % 2;
+          const px = col * (size / 2) + 10;
+          const py = size + 12 + row * 24;
+          svg += `<rect x="${px}" y="${py}" width="10" height="10" rx="2" fill="${s.color}" opacity="0.8"/>`;
+          svg += `<text x="${px + 14}" y="${py + 9}" fill="var(--text-muted)" font-size="9">${s.label} (${s.value.toLocaleString()})</text>`;
+        });
+
+        svg += "</svg>";
+        return svg;
+      }
+
+      function buildMiniBar(dist) {
+        const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+        const maxVal = Math.max(...entries.map((e) => e[1]));
+        const barH = 22,
+          gap = 6,
+          w = 300;
+        const totalH = entries.length * (barH + gap) + 4;
+        let svg = `<svg width="100%" viewBox="0 0 ${w} ${totalH}" style="max-width:${w}px">`;
+        let y = 2;
+        entries.forEach(([mp, count]) => {
+          const bw = (count / maxVal) * (w - 120);
+          svg += `<text x="0" y="${y + 15}" fill="var(--text-secondary)" font-size="10">${esc(mp.replace("-marketplace", ""))}</text>`;
+          svg += `<rect x="120" y="${y + 2}" width="${bw}" height="${barH - 4}" rx="3" fill="${mpColor(mp)}" opacity="0.7"/>`;
+          svg += `<text x="${122 + bw + 4}" y="${y + 15}" fill="var(--text-muted)" font-size="10">${count}</text>`;
+          y += barH + gap;
+        });
+        svg += "</svg>";
+        return svg;
+      }
+
+      // ── Counting helpers ──
+      function countFindings(sev) {
+        let c = 0;
+        [data.tokenAndConfig, data.skillsEcosystem, data.insights].forEach(
+          (section) => {
+            if (section.findings)
+              c += section.findings.filter((f) => f.severity === sev).length;
+          },
+        );
+        return c;
+      }
+      function totalFilesScanned() {
+        return (
+          (data.tokenAndConfig.tokenBreakdown.global.length || 0) +
+          (data.tokenAndConfig.tokenBreakdown.project.length || 0)
+        );
+      }
+
+      // ── Table sorting ──
+      let sortState = {};
+      function sortTable(tableId, colIdx, type) {
+        const table = document.getElementById(tableId);
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const key = tableId + "-" + colIdx;
+        sortState[key] = sortState[key] === "asc" ? "desc" : "asc";
+        const dir = sortState[key] === "asc" ? 1 : -1;
+
+        rows.sort((a, b) => {
+          let av =
+            a.cells[colIdx].getAttribute("data-val") ||
+            a.cells[colIdx].textContent;
+          let bv =
+            b.cells[colIdx].getAttribute("data-val") ||
+            b.cells[colIdx].textContent;
+          if (type === "num") {
+            av = parseFloat(av) || 0;
+            bv = parseFloat(bv) || 0;
+          }
+          if (av < bv) return -dir;
+          if (av > bv) return dir;
+          return 0;
+        });
+
+        rows.forEach((r) => tbody.appendChild(r));
+
+        // Update arrow indicators
+        table
+          .querySelectorAll("th .sort-arrow")
+          .forEach((a) => (a.textContent = ""));
+        const th = table.querySelectorAll("th")[colIdx];
+        const arrow = th.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = sortState[key] === "asc" ? " ▲" : " ▼";
+      }
+
+      // ── Collapsible toggle ──
+      function toggleCollapse(id) {
+        const body = document.getElementById(id);
+        const header = body.previousElementSibling;
+        body.classList.toggle("open");
+        header.classList.toggle("open");
+      }
+
+      // ── Tab navigation ──
+      function switchTab(tabId) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add("active");
+        document.getElementById(tabId).classList.add("active");
+      }
+
+      // ── Filter state ──
+      let activeFilters = { severity: null, category: null };
+      function toggleFilter(type, value) {
+        if (activeFilters[type] === value) {
+          activeFilters[type] = null;
+        } else {
+          activeFilters[type] = value;
+        }
+        renderRecommendations();
+        // Update chip UI
+        document
+          .querySelectorAll(`.chip[data-filter-type="${type}"]`)
+          .forEach((c) => {
+            c.classList.toggle(
+              "active",
+              c.getAttribute("data-filter-value") === activeFilters[type],
+            );
+          });
+      }
+
+      function renderRecommendations() {
+        const container = document.getElementById("rec-list");
+        if (!container) return;
+        let recs = [...data.insights.recommendations].sort(
+          (a, b) => sevOrder(a.severity) - sevOrder(b.severity),
+        );
+        if (activeFilters.severity)
+          recs = recs.filter((r) => r.severity === activeFilters.severity);
+        // Category filter from findings
+        container.innerHTML = recs
+          .map(
+            (r) => `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge ${sevClass(r.severity)}">${r.severity}</span>
+            <span class="effort ${effortClass(r.effort)}">${r.effort}</span>
+          </div>
+          <h3>${esc(r.title)}</h3>
+          <p>${esc(r.description)}</p>
+          <p style="margin-top:6px;color:var(--text-primary);font-size:0.85rem"><strong>${t("action")}:</strong> ${esc(r.action)}</p>
+        </div>
+      </div>
+      ${r.fix ? `<div class="fix-cmd">${esc(r.fix)}</div>` : ""}
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      // ── Main render ──
+      function render() {
+        const app = document.getElementById("app");
+        const score = data.insights.optimizationScore;
+        const tc = data.tokenAndConfig;
+        const se = data.skillsEcosystem;
+        const ins = data.insights;
+
+        app.innerHTML = `
+    <!-- Header -->
+    <div class="header">
+      <h1>${t("title")}</h1>
+      <div class="subtitle">${t("subtitle")}</div>
+      <div class="scope-badge">${t("scope")}: ${esc(data.meta.scope)}${data.meta.projectPath && data.meta.scope !== "global" ? ` &nbsp;|&nbsp; ${t("projectLabel")}: <code style="font-size:0.75rem;background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px">${esc(data.meta.projectPath)}</code>` : ''}</div>
+      ${data.meta.analyzer ? `<span class="analyzer-badge ${esc(data.meta.analyzer)}">${t("analyzedBy")}: ${esc(data.meta.analyzerCommand || data.meta.analyzer)}</span>` : ''}
+      ${data.meta.fallbackUsed ? `<span class="analyzer-badge claude-code" style="opacity:0.7">${t("fallbackUsed")}</span>` : ''}
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+      <div class="gauge-container">
+        <h3>${t("optimizationScore")}</h3>
+        ${buildGauge(score.total)}
+        <div class="gauge-label" style="color:${scoreColor(score.total)}">${scoreLabel(score.total)}</div>
+        <div class="score-detail">
+          ${score.bonuses.map((b) => `<div class="score-detail-item"><span class="reason">${esc(b.reason)}</span><span class="points-pos">+${b.points}</span></div>`).join("")}
+          ${score.deductions.map((d) => `<div class="score-detail-item"><span class="reason">${esc(d.reason)}</span><span class="points-neg">${d.points}</span></div>`).join("")}
+        </div>
+      </div>
+      <div class="stats-panel">
+        <div class="radar-wrap">${buildRadar(score.breakdown)}</div>
+        <div class="summary-stats">
+          <div class="stat-box"><div class="stat-value">${totalFilesScanned()}</div><div class="stat-label">${t("filesScanned")}</div></div>
+          <div class="stat-box"><div class="stat-value">${(tc.metrics.globalTotalTokens + tc.metrics.projectTotalTokens).toLocaleString()}</div><div class="stat-label">${t("totalTokens")}</div></div>
+          <div class="stat-box"><div class="stat-value" style="color:var(--red)">${countFindings("critical")}</div><div class="stat-label">${t("critical")}</div></div>
+          <div class="stat-box"><div class="stat-value" style="color:var(--yellow)">${countFindings("warning")}</div><div class="stat-label">${t("warnings")}</div></div>
+          <div class="stat-box"><div class="stat-value" style="color:var(--blue)">${countFindings("info")}</div><div class="stat-label">${t("info")}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="tab-tokens" onclick="switchTab('tab-tokens')">${t("tabTokens")}</button>
+      <button class="tab-btn" data-tab="tab-skills" onclick="switchTab('tab-skills')">${t("tabSkills")}</button>
+      <button class="tab-btn" data-tab="tab-config" onclick="switchTab('tab-config')">${t("tabConfig")}</button>
+      <button class="tab-btn" data-tab="tab-tips" onclick="switchTab('tab-tips')">${t("tabTips")}</button>
+      <button class="tab-btn" data-tab="tab-session" onclick="switchTab('tab-session')">${t("tabSession")}</button>
+    </div>
+
+    <!-- Tab: Token Budget -->
+    <div class="tab-panel active" id="tab-tokens">
+      <h2 class="section-heading">${t("tokenBudgetAnalysis")}</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">${t("tokenAnalysisDesc")}</p>
+      <div class="chart-row">
+        <div class="chart-box">
+          <h3 class="chart-section">${t("tokenUsageByFile")}</h3>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:8px">${t("tokenUsageDesc")}</p>
+          ${buildBarChart(tc.tokenBreakdown.global, tc.tokenBreakdown.project)}
+        </div>
+        <div class="chart-box">
+          <h3 class="chart-section">${t("contextDistribution")}</h3>
+          <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:8px">${t("contextDistDesc")}</p>
+          <div style="display:flex;justify-content:center">${buildPieChart()}</div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="section-heading">${t("fileDetails")}</h3>
+        <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px">${t("fileDetailsDesc")}</p>
+        <div class="table-wrap">
+          <table id="token-table">
+            <thead><tr>
+              <th onclick="sortTable('token-table',0,'str')">${t("file")} <span class="sort-arrow"></span></th>
+              <th onclick="sortTable('token-table',1,'str')">${t("layer")} <span class="sort-arrow"></span></th>
+              <th onclick="sortTable('token-table',2,'num')">${t("chars")} <span class="sort-arrow"></span></th>
+              <th onclick="sortTable('token-table',3,'num')">${t("tokens")} <span class="sort-arrow"></span></th>
+              <th onclick="sortTable('token-table',4,'num')">${t("contextPercent")} <span class="sort-arrow"></span></th>
+              <th onclick="sortTable('token-table',5,'num')">${t("atRefs")} <span class="sort-arrow"></span></th>
+            </tr></thead>
+            <tbody>
+              ${[
+                ...tc.tokenBreakdown.global.map((f) => ({
+                  ...f,
+                  layer: "global",
+                })),
+                ...tc.tokenBreakdown.project.map((f) => ({
+                  ...f,
+                  layer: "project",
+                })),
+              ]
+                .map(
+                  (f) => `<tr>
+                <td data-val="${esc(f.file)}" title="${esc(f.file)}">${esc(shortFile(f.file))}</td>
+                <td data-val="${f.layer}"><span class="badge ${f.layer === "global" ? "badge-info" : "badge-good"}">${f.layer}</span></td>
+                <td data-val="${f.chars}">${(f.chars || 0).toLocaleString()}</td>
+                <td data-val="${f.tokens}">${f.tokens.toLocaleString()}</td>
+                <td data-val="${f.contextPercent}">${f.contextPercent.toFixed(2)}%</td>
+                <td data-val="${(f.atRefs || []).length}">${(f.atRefs || []).length > 0 ? (f.atRefs || []).length + " (+" + (f.transitiveTokens || 0).toLocaleString() + " tokens)" : "-"}</td>
+              </tr>`,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      ${
+        tc.findings.length > 0
+          ? `
+      <div class="subsection">
+        <h3 class="section-heading">${t("tokenFindings")}</h3>
+        <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px">${t("tokenFindingsDesc")}</p>
+        ${tc.findings
+          .map(
+            (f) => `<div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge ${sevClass(f.severity)}">${f.severity}</span>
+            <span style="color:var(--text-muted);font-size:0.75rem">${esc(f.category)}</span>
+          </div>
+          <h3>${esc(f.title)}</h3>
+          <p>${esc(f.detail)}</p>
+          ${f.suggestion ? `<p style="margin-top:6px;color:var(--green);font-size:0.8rem">${t("suggestion")}: ${esc(f.suggestion)}</p>` : ""}
+        </div>`,
+          )
+          .join("")}
+      </div>`
+          : ""
+      }
+    </div>
+
+    <!-- Tab: Skills Ecosystem -->
+    <div class="tab-panel" id="tab-skills">
+      <h2 class="section-heading">${t("skillsEcosystem")}</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">${t("skillsEcoDesc")}</p>
+
+      <div class="summary-stats" style="margin-bottom:24px">
+        <div class="stat-box"><div class="stat-value">${se.metrics.totalSkills}</div><div class="stat-label">${t("totalSkills")}</div></div>
+        <div class="stat-box"><div class="stat-value">${se.metrics.totalPlugins}</div><div class="stat-label">${t("plugins")}</div></div>
+        <div class="stat-box"><div class="stat-value">${se.metrics.enabledPlugins}</div><div class="stat-label">${t("enabled")}</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--green)">${se.metrics.csoGood}</div><div class="stat-label">${t("csoGood")}</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--yellow)">${se.metrics.csoWarning}</div><div class="stat-label">${t("csoWarn")}</div></div>
+        <div class="stat-box"><div class="stat-value" style="color:var(--red)">${se.metrics.csoBad}</div><div class="stat-label">${t("csoBad")}</div></div>
+      </div>
+      <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:16px">${t("csoDesc")}</p>
+
+      ${
+        se.overlapPairs.length > 0
+          ? `
+      <div class="card" style="border-left:3px solid var(--yellow);margin-bottom:20px">
+        <h3 style="color:var(--yellow)">${t("overlapWarnings")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:8px">${t("overlapDesc")}</p>
+        ${se.overlapPairs.map((o) => `<p style="margin-top:8px"><span class="overlap-icon">&#9888;</span> <strong>${esc(o.skill1)}</strong> and <strong>${esc(o.skill2)}</strong> have ${o.overlapPercent}% overlap (${esc(o.type.replace(/-/g, " "))})</p>`).join("")}
+      </div>`
+          : ""
+      }
+
+      <div class="subsection">
+        <h3 class="section-heading">${t("pluginDistribution")}</h3>
+        ${buildMiniBar(se.pluginDistribution)}
+      </div>
+
+      <div class="subsection">
+        <h3 class="section-heading">${t("skillInventory")}</h3>
+        <div class="skill-grid">
+          ${se.skillsInventory
+            .map((s) => {
+              const isOverlap = se.overlapPairs.some(
+                (o) =>
+                  o.skill1.startsWith(s.name + "@") ||
+                  o.skill2.startsWith(s.name + "@"),
+              );
+              return `<div class="skill-card" style="border-left-color:${mpColor(s.marketplace)}">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="skill-name">${esc(s.name)}</span>
+                ${isOverlap ? '<span class="overlap-icon" title="Overlap detected">&#9888;</span>' : ""}
+              </div>
+              <div class="skill-meta">
+                <span class="marketplace-badge" style="color:${mpColor(s.marketplace)}">${esc(s.marketplace.replace("-marketplace", ""))}</span>
+                <span class="${s.enabled ? "enabled-badge" : "disabled-badge"}">${s.enabled ? t("enabled").toLowerCase() : t("disabled").toLowerCase()}</span>
+                <span class="cso-dot cso-${s.csoQuality}" title="CSO: ${s.csoQuality}"></span>
+              </div>
+              <p style="margin-top:6px;font-size:0.8rem;color:var(--text-muted)">${esc(s.description)}</p>
+            </div>`;
+            })
+            .join("")}
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Config Health -->
+    <div class="tab-panel" id="tab-config">
+      <h2 class="section-heading">${t("configHealth")}</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">${t("configHealthDesc")}</p>
+
+      <!-- Permissions -->
+      <div class="subsection">
+        <h3 class="section-heading">${t("permissions")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px">${t("permDesc")}</p>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.overbroadPermissions === 0 ? "&#9989;" : "&#10060;"}</span>
+          <div class="checklist-content">
+            <h4>${t("noOverbroadPerms")} <span class="badge badge-info" style="font-size:0.65rem;vertical-align:middle">${t("global")}</span> <span class="badge badge-good" style="font-size:0.65rem;vertical-align:middle">${t("project")}</span></h4>
+            <p>${tc.metrics.overbroadPermissions === 0 ? t("allPermsScoped") : tc.metrics.overbroadPermissions + " " + t("overbroadFound")}</p>
+            ${tc.metrics.overbroadPermissions > 0 ? "<div class=\"fix-cmd\">Replace wildcard '*' with specific tool names in settings.json</div>" : ""}
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.redundantPermissions === 0 ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("noRedundantPerms")} <span class="badge badge-info" style="font-size:0.65rem;vertical-align:middle">${t("global")}</span> <span class="badge badge-good" style="font-size:0.65rem;vertical-align:middle">${t("project")}</span></h4>
+            <p>${tc.metrics.redundantPermissions === 0 ? t("noDuplicatePerms") : tc.metrics.redundantPermissions + " " + t("redundantFound")}</p>
+            ${tc.metrics.redundantPermissions > 0 ? '<div class="fix-cmd">Review and deduplicate permission entries in settings.json</div>' : ""}
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.permissionsAllowCount > 0 ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("allowListConfigured")}</h4>
+            <p><span class="badge badge-info" style="font-size:0.65rem">${t("global")}</span> ${tc.metrics.permissionsAllowCount} ${t("allowRules")}, ${tc.metrics.permissionsDenyCount} ${t("denyRules")}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hooks -->
+      <div class="subsection">
+        <h3 class="section-heading">${t("hooks")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px">${t("hookDesc")}</p>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.hookConflicts === 0 ? "&#9989;" : "&#10060;"}</span>
+          <div class="checklist-content">
+            <h4>${t("noHookConflicts")}</h4>
+            <p>${tc.metrics.hookConflicts === 0 ? t("hooksNoConflict") : tc.metrics.hookConflicts + " " + t("hookConflictsFound")}</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.missingHookScripts === 0 ? "&#9989;" : "&#10060;"}</span>
+          <div class="checklist-content">
+            <h4>${t("allHookScriptsExist")}</h4>
+            <p>${tc.metrics.missingHookScripts === 0 ? t("allScriptsPresent") : tc.metrics.missingHookScripts + " " + t("missingScripts")}</p>
+            ${tc.metrics.missingHookScripts > 0 ? '<div class="fix-cmd">Verify hook script paths in .claude/settings.json</div>' : ""}
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">&#9989;</span>
+          <div class="checklist-content">
+            <h4>${t("hooksConfigured")}</h4>
+            <p><span class="badge badge-info" style="font-size:0.65rem">${t("global")}</span> ${tc.metrics.globalHooksCount} ${t("globalHooks")} &nbsp; <span class="badge badge-good" style="font-size:0.65rem">${t("project")}</span> ${tc.metrics.projectHooksCount} ${t("projectHooks")}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hooks detail -->
+      <div class="subsection">
+        <div class="collapsible-header" onclick="toggleCollapse('hooks-detail')">
+          <h3 class="section-heading" style="border:none;margin:0;padding:0">${t("hookDetails")}</h3>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="collapsible-body" id="hooks-detail">
+          <div class="collapsible-body-inner">
+            <table>
+              <thead><tr><th>${t("layer")}</th><th>Event</th><th>Matcher</th><th>Command</th></tr></thead>
+              <tbody>
+                ${(tc.configMap.hooks.global || []).map((h) => `<tr><td><span class="badge badge-info">${t("global").toLowerCase()}</span></td><td>${esc(h.event)}</td><td><code>${esc(h.matcher)}</code></td><td><code>${esc(h.command)}</code></td></tr>`).join("")}
+                ${(tc.configMap.hooks.project || []).map((h) => `<tr><td><span class="badge badge-good">${t("project").toLowerCase()}</span></td><td>${esc(h.event)}</td><td><code>${esc(h.matcher)}</code></td><td><code>${esc(h.command)}</code></td></tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic conflicts -->
+      <div class="subsection">
+        <h3 class="section-heading">${t("semanticConflicts")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px">${t("semanticDesc")}</p>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.semanticConflicts === 0 ? "&#9989;" : "&#10060;"}</span>
+          <div class="checklist-content">
+            <h4>${t("noSemanticConflicts")} <span class="badge badge-info" style="font-size:0.65rem;vertical-align:middle">${t("global")}</span> <span class="badge badge-good" style="font-size:0.65rem;vertical-align:middle">${t("project")}</span></h4>
+            <p>${tc.metrics.semanticConflicts === 0 ? t("configsAligned") : tc.metrics.semanticConflicts + " " + t("semanticConflictsFound")}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MCP Alignment -->
+      <div class="subsection">
+        <h3 class="section-heading">${t("mcpAlignment")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px">${t("mcpDesc")}</p>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.configMap.mcpAlignment.documentedNotConfigured.length === 0 && tc.configMap.mcpAlignment.configuredNotDocumented.length === 0 ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("docMatchesConfig")} <span class="badge badge-info" style="font-size:0.65rem;vertical-align:middle">${t("global")}</span></h4>
+            <p>${tc.metrics.mcpDocumented} ${t("documented")}, ${tc.metrics.mcpConfigured} ${t("configured")}</p>
+          </div>
+        </div>
+        ${
+          tc.configMap.mcpAlignment.documentedNotConfigured.length > 0
+            ? `
+        <div class="checklist-item">
+          <span class="checklist-icon">&#9888;&#65039;</span>
+          <div class="checklist-content">
+            <h4>${t("documentedNotConfigured")}</h4>
+            <p>${tc.configMap.mcpAlignment.documentedNotConfigured.map((m) => `<code>${esc(m)}</code>`).join(", ")}</p>
+            <div class="fix-cmd">Add MCP server configs to .claude/settings.json or .mcp.json</div>
+          </div>
+        </div>`
+            : ""
+        }
+        ${
+          tc.configMap.mcpAlignment.configuredNotDocumented.length > 0
+            ? `
+        <div class="checklist-item">
+          <span class="checklist-icon">&#9888;&#65039;</span>
+          <div class="checklist-content">
+            <h4>${t("configuredNotDocumented")}</h4>
+            <p>${tc.configMap.mcpAlignment.configuredNotDocumented.map((m) => `<code>${esc(m)}</code>`).join(", ")}</p>
+            <div class="fix-cmd">Add MCP documentation files to ~/.claude/ (e.g., MCP_Confluence.md)</div>
+          </div>
+        </div>`
+            : ""
+        }
+      </div>
+
+      <!-- Structure -->
+      <div class="subsection">
+        <h3 class="section-heading">${t("structure")}</h3>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:12px">${t("structureDesc")}</p>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.hasCustomCommands ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("customCommands")} <span class="badge badge-info" style="font-size:0.65rem;vertical-align:middle">${t("global")}</span></h4>
+            <p>${tc.metrics.hasCustomCommands ? tc.metrics.customCommandsCount + " " + t("commandsDefined") : t("noCommandsFound")}</p>
+            ${!tc.metrics.hasCustomCommands ? '<div class="fix-cmd">mkdir -p ~/.claude/commands</div>' : ""}
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.hasCustomAgents ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("customAgents")} <span class="badge badge-good" style="font-size:0.65rem;vertical-align:middle">${t("project")}</span></h4>
+            <p>${tc.metrics.hasCustomAgents ? tc.metrics.customAgentsCount + " " + t("agentsDefined") : t("noAgentsFound")}</p>
+            ${!tc.metrics.hasCustomAgents ? '<div class="fix-cmd">mkdir -p .claude/agents</div>' : ""}
+          </div>
+        </div>
+        <div class="checklist-item">
+          <span class="checklist-icon">${tc.metrics.hasMemoryFiles ? "&#9989;" : "&#9888;&#65039;"}</span>
+          <div class="checklist-content">
+            <h4>${t("memoryFiles")} <span class="badge badge-good" style="font-size:0.65rem;vertical-align:middle">${t("project")}</span></h4>
+            <p>${tc.metrics.hasMemoryFiles ? t("found") + ": " + tc.configMap.memoryFiles.join(", ") : t("noMemoryFound")}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cross-layer insights -->
+      ${
+        ins.crossLayerInsights.length > 0
+          ? `
+      <div class="subsection">
+        <h3 class="section-heading">${t("crossLayerInsights")}</h3>
+        ${ins.crossLayerInsights
+          .map(
+            (ci) => `
+          <div class="card" style="border-left:3px solid ${ci.type === "overlap" ? "var(--yellow)" : "var(--green)"}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="badge ${ci.type === "overlap" ? "badge-warning" : "badge-good"}">${ci.type}</span>
+            </div>
+            <h3>${esc(ci.title)}</h3>
+            <p><strong>${t("global")}:</strong> <code>${esc(ci.global)}</code></p>
+            <p><strong>${t("project")}:</strong> <code>${esc(ci.project)}</code></p>
+            <p style="margin-top:6px;color:var(--green);font-size:0.8rem">${esc(ci.suggestion)}</p>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>`
+          : ""
+      }
+    </div>
+
+    <!-- Tab: Recommended Commands -->
+    <div class="tab-panel" id="tab-tips">
+      <h2 class="section-heading">${t("tabTips")}</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">${t("tipsDesc")}</p>
+
+      <!-- Section: Commands -->
+      <div class="subsection">
+        <div class="collapsible-header" onclick="toggleCollapse('tips-commands')" style="cursor:pointer">
+          <h3 class="section-heading" style="border:none;margin:0;padding:0">${t("sectionCommands")}</h3>
+          <span class="arrow" style="transform:rotate(90deg)">&#9654;</span>
+        </div>
+        <div class="collapsible-body" id="tips-commands" style="display:block">
+          <div class="collapsible-body-inner">
+            ${ins.missedCommands
+              .map(
+                (c) => `
+              <div class="cmd-card">
+                <div class="cmd-icon">&#9889;</div>
+                <div class="cmd-body">
+                  <h4><code>${esc(c.command)}</code></h4>
+                  <div class="cmd-desc">${esc(c.description)}</div>
+                  <div class="cmd-benefit">${esc(c.benefit)}</div>
+                  <div class="fix-cmd">${esc(c.fix)}</div>
+                </div>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Automation -->
+      <div class="subsection">
+        <div class="collapsible-header" onclick="toggleCollapse('tips-automation')" style="cursor:pointer">
+          <h3 class="section-heading" style="border:none;margin:0;padding:0">${t("sectionAutomation")}</h3>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="collapsible-body" id="tips-automation">
+          <div class="collapsible-body-inner">
+            ${ins.automationOpportunities
+              .map(
+                (a) => `
+              <div class="auto-card">
+                <div class="auto-col">
+                  <h4>${t("currentManual")}</h4>
+                  <p>${esc(a.current)}</p>
+                </div>
+                <div class="auto-col">
+                  <h4>${t("suggestedAutomated")}</h4>
+                  <p>${esc(a.suggested)}</p>
+                  <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+                    <span class="effort ${effortClass(a.effort)}">${a.effort}</span>
+                    <span style="font-size:0.8rem;color:var(--green)">${esc(a.benefit)}</span>
+                  </div>
+                </div>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Recommendations -->
+      <div class="subsection">
+        <div class="collapsible-header" onclick="toggleCollapse('tips-recs')" style="cursor:pointer">
+          <h3 class="section-heading" style="border:none;margin:0;padding:0">${t("sectionRecommendations")}</h3>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="collapsible-body" id="tips-recs">
+          <div class="collapsible-body-inner">
+            <div class="filter-bar">
+              <span style="font-size:0.8rem;color:var(--text-muted);line-height:28px">${t("filter")}:</span>
+              <button class="chip" data-filter-type="severity" data-filter-value="critical" onclick="toggleFilter('severity','critical')">${t("critical")}</button>
+              <button class="chip" data-filter-type="severity" data-filter-value="warning" onclick="toggleFilter('severity','warning')">${t("warnings")}</button>
+              <button class="chip" data-filter-type="severity" data-filter-value="info" onclick="toggleFilter('severity','info')">${t("info")}</button>
+            </div>
+            <div id="rec-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Session Analysis -->
+    <div class="tab-panel" id="tab-session">
+      <h2 class="section-heading">${t("sessionAnalysis")}</h2>
+      ${data.sessionAnomaly && data.sessionAnomaly.metrics && data.sessionAnomaly.metrics.sessionsAnalyzed > 0 ? `
+        <div class="summary-stats" style="margin-bottom:24px">
+          <div class="stat-box"><div class="stat-value">${data.sessionAnomaly.metrics.sessionsAnalyzed}</div><div class="stat-label">${t("sessionsAnalyzed")}</div></div>
+          <div class="stat-box"><div class="stat-value">${data.sessionAnomaly.metrics.totalTurns}</div><div class="stat-label">${t("totalTurns")}</div></div>
+          <div class="stat-box"><div class="stat-value">${data.sessionAnomaly.metrics.avgPromptLength}</div><div class="stat-label">${t("avgPromptLen")}</div></div>
+        </div>
+        ${data.sessionAnomaly.metrics.anomalyTags.length > 0 ? `
+          <div style="margin-bottom:16px">
+            <h3 class="section-heading">${t("anomalyTags")}</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${data.sessionAnomaly.metrics.anomalyTags.map(tag => `<span class="badge badge-warn">${esc(tagLabel(tag))}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+        ${ins.sessionInsights ? `
+          <div class="card" style="border-left:3px solid var(--red);margin-bottom:16px">
+            <h3 style="color:var(--red)">${t("sessionStatus")}</h3>
+            <p style="font-size:1.1rem;font-style:italic;color:var(--text-primary)">${esc(ins.sessionInsights.status)}</p>
+          </div>
+          ${ins.sessionInsights.criticalIssues && ins.sessionInsights.criticalIssues.length > 0 ? `
+            <div class="subsection">
+              <h3 class="section-heading">${t("sessionCritical")}</h3>
+              ${ins.sessionInsights.criticalIssues.map(issue => {
+                const relatedPatch = ins.sessionInsights.instructionPatches ? ins.sessionInsights.instructionPatches.find(p => p.triggerTag === issue.tag) : null;
+                return `
+                <div class="card" style="margin-bottom:12px">
+                  <span class="badge badge-warn">${esc(tagLabel(issue.tag))}</span>
+                  <p style="margin-top:8px">${esc(issue.critique)}</p>
+                  <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px">${esc(issue.evidence)}</p>
+                  ${relatedPatch ? `
+                    <div style="margin-top:12px;padding:10px;background:var(--bg-input);border-radius:var(--radius);border-left:3px solid var(--blue)">
+                      <p style="color:var(--blue);font-size:0.82rem;font-weight:600;margin-bottom:6px">${t("patchSuggestion")}</p>
+                      <div class="patch-code" style="margin-bottom:0">
+                        <button class="copy-btn" onclick="copyPatch(this, ${JSON.stringify(relatedPatch.patch).replace(/'/g, "\\\\'")})">${t("copyBtn")}</button>
+${esc(relatedPatch.patch)}</div>
+                      ${relatedPatch.scenario ? `<p style="color:var(--text-muted);font-size:0.8rem;margin-top:6px">${t("scenario")}: ${esc(relatedPatch.scenario)}</p>` : ''}
+                    </div>
+                  ` : ''}
+                </div>`;
+              }).join('')}
+            </div>
+          ` : ''}
+          <div class="card" style="border-left:3px solid var(--green);margin-top:16px">
+            <h3 style="color:var(--green)">${t("sessionPrescription")}</h3>
+            <p style="font-weight:600">${esc(ins.sessionInsights.prescription)}</p>
+          </div>
+        ` : ''}
+        ${data.sessionAnomaly.sessionBreakdown && data.sessionAnomaly.sessionBreakdown.length > 0 ? `
+          <div class="subsection" style="margin-top:24px">
+            <h3 class="section-heading">${t("sessionBreakdown")}</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>${t("sessionId")}</th>
+                  <th>${t("totalTurns")}</th>
+                  <th>${t("avgPromptLen")}</th>
+                  <th>${t("verificationRate")}</th>
+                  <th>${t("anomalyTags")}</th>
+                </tr></thead>
+                <tbody>
+                  ${data.sessionAnomaly.sessionBreakdown.map(s => `<tr>
+                    <td><code>${esc(s.sessionId)}</code></td>
+                    <td>${s.turns}</td>
+                    <td>${s.stats.user_input_avg_len}</td>
+                    <td>${(s.stats.verification_rate * 100).toFixed(0)}%</td>
+                    <td>${s.anomalies.map(a => `<span class="badge badge-warn" style="margin:2px">${esc(tagLabel(a))}</span>`).join('')}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ` : ''}
+      ` : `<div class="card"><p>${t("noSessionData")}</p></div>`}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      ${t("scannedAt")} ${new Date(data.meta.timestamp).toLocaleString()} | ${t("scope")}: ${esc(data.meta.scope)} | ${t("score")}: ${score.total}/100 | v${esc(data.meta.version)}
+    </div>
+  `;
+
+        // Initial render of recommendations
+        renderRecommendations();
+      }
+
+      function copyPatch(btn, text) {
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.textContent;
+          btn.textContent = t("copied");
+          btn.classList.add("copied");
+          setTimeout(() => { btn.textContent = original; btn.classList.remove("copied"); }, 2000);
+        });
+      }
+
+      // Boot
+      render();
+    </script>
+  </body>
+</html>

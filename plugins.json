@@ -1,0 +1,22 @@
+{
+  "claude": {
+    "marketplaces": [
+      {
+        "name": "superpowers-marketplace",
+        "source": "github:obra/superpowers-marketplace",
+        "description": "SuperClaude framework - commands, agents, skills, brainstorming"
+      }
+    ],
+    "plugins": [
+      "superpowers@superpowers-marketplace"
+    ]
+  },
+  "codex": {
+    "mcp_servers": [
+      "mcp-confluence",
+      "mcp-jira",
+      "mcp-slack",
+      "mcp-github"
+    ]
+  }
+}

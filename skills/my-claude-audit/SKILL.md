@@ -1,0 +1,227 @@
+---
+name: my-claude-audit
+description: >
+  /my-claude-audit command only.
+  Comprehensive audit of Claude Code configuration with multi-model delegation:
+  token budget, config health, skills ecosystem, session log anomaly detection,
+  and AI usage pattern analysis. Supports Gemini/OpenAI/Codex CLI delegation.
+  Generates interactive HTML dashboard.
+---
+
+# /my-claude-audit
+
+Comprehensive audit of your Claude Code configuration with an interactive HTML dashboard. Analyzes token efficiency, config health, skills ecosystem, feature utilization, and automation opportunities across all layers.
+
+## Workflow
+
+```dot
+digraph workflow {
+    rankdir=TB;
+
+    "User: /my-claude-audit" [shape=doublecircle];
+    "Ask scope" [shape=box];
+    "Ask model" [shape=box];
+    "Discovery: read settings.json" [shape=box];
+    "Session log discovery" [shape=box];
+    "Parallel dispatch (3 agents)" [shape=box];
+    "Token & Config Analyzer" [shape=box];
+    "Skills Ecosystem Analyzer" [shape=box];
+    "Session Anomaly Tagger" [shape=box];
+    "Wait for parallel agents" [shape=box];
+    "Auth check selected model" [shape=diamond];
+    "Delegate to external CLI" [shape=box];
+    "Fallback: Claude internal" [shape=box];
+    "Insights Aggregator" [shape=box];
+    "Generate HTML report" [shape=box];
+    "Open in browser" [shape=box];
+    "Print terminal summary" [shape=doublecircle];
+
+    "User: /my-claude-audit" -> "Ask scope";
+    "Ask scope" -> "Ask model";
+    "Ask model" -> "Discovery: read settings.json";
+    "Discovery: read settings.json" -> "Session log discovery";
+    "Session log discovery" -> "Parallel dispatch (3 agents)";
+    "Parallel dispatch (3 agents)" -> "Token & Config Analyzer";
+    "Parallel dispatch (3 agents)" -> "Skills Ecosystem Analyzer";
+    "Parallel dispatch (3 agents)" -> "Session Anomaly Tagger";
+    "Token & Config Analyzer" -> "Wait for parallel agents";
+    "Skills Ecosystem Analyzer" -> "Wait for parallel agents";
+    "Session Anomaly Tagger" -> "Wait for parallel agents";
+    "Wait for parallel agents" -> "Auth check selected model";
+    "Auth check selected model" -> "Delegate to external CLI" [label="external"];
+    "Auth check selected model" -> "Insights Aggregator" [label="claude-code"];
+    "Delegate to external CLI" -> "Insights Aggregator" [label="success"];
+    "Delegate to external CLI" -> "Fallback: Claude internal" [label="fail"];
+    "Fallback: Claude internal" -> "Insights Aggregator";
+    "Insights Aggregator" -> "Generate HTML report";
+    "Generate HTML report" -> "Open in browser";
+    "Open in browser" -> "Print terminal summary";
+}
+```
+
+## Phase 0: Scope Selection
+
+Ask the user with AskUserQuestion:
+
+- **Both** (Recommended): Analyze global config + current project config
+- **Global only**: Analyze only ~/.claude/ settings, skills, and framework
+- **Project only**: Analyze only the current project's CLAUDE.md and .claude/ directory
+
+## Phase 0.5: Model Selection
+
+Scan for available external CLI tools:
+
+1. Run `which gemini`, `which openai`, `which codex` to detect installed tools
+2. Check env vars: `GEMINI_API_KEY`, `OPENAI_API_KEY` (existence only)
+
+Ask the user with AskUserQuestion (Korean labels):
+
+Build options dynamically — only show installed tools. Always include:
+- Each installed tool as an option, annotated with "(API 키 감지)" if env var exists
+- **Claude Code (내장)** — always available, no external dependency
+- **직접 입력** — user types a custom CLI command
+
+Store the selection for Phase 3 delegation and `meta.analyzer` report attribution.
+
+## Phase 1: Discovery
+
+Read `~/.claude/settings.json` and extract:
+
+- `pluginMarketplaces` array (marketplace names and paths)
+- `hooks` configuration (all event types)
+- `enabledPlugins` map
+- `permissions.allow` and `permissions.deny`
+- `enabledMcpjsonServers`
+- `env` variables
+
+Use Glob to list all global config files: `~/.claude/*.md`
+
+If project scope (both or project-only):
+
+- Read `$PWD/CLAUDE.md` (if exists)
+- Read `$PWD/.claude/settings.json` (if exists)
+- Read `$PWD/.claude/settings.local.json` (if exists)
+
+### Session Log Discovery
+
+- Resolve current project path encoding: replace `/` with `-` in `$PWD`, strip leading `-`
+- List `~/.claude/projects/<encoded-cwd>/*.jsonl` (exclude `subagents/` subdirectories)
+- Sort by modification time descending, select up to 5 most recent
+- If no JSONL files found, note as info-level and skip session analysis
+
+## Phase 2: Dispatch Parallel Subagents
+
+Dispatch using the Agent tool (subagent_type: Explore).
+
+**For each subagent:**
+
+1. Read the prompt file content from `analyzer-prompts/` using the Read tool (do NOT use `@` syntax -- it force-loads and wastes context)
+2. Prepend the discovered data (file paths, settings contents) as context
+3. Dispatch with clear instruction to return ONLY JSON
+
+**Dispatch (parallel):**
+
+```
+Agent 1: token-and-config.md prompt + discovery data + scope
+Agent 2: skills-ecosystem.md prompt + enabledPlugins + pluginMarketplaces
+Agent 3: session-anomaly-tagger.md prompt + session JSONL file paths
+```
+
+All three run in parallel. Wait for all to complete.
+
+## Phase 3: Insights Aggregation (delegatable)
+
+After all parallel agents complete:
+
+**If selected model is Claude Code (internal):**
+
+```
+Agent 4: insights-aggregator.md prompt + combined JSON from Agents 1, 2 & 3 + scope
+```
+
+**If selected model is an external CLI tool:**
+
+1. Read `analyzer-prompts/insights-aggregator.md` using the Read tool
+2. Combine: insights-aggregator prompt + all 3 agent JSONs + scope info
+3. Write combined prompt to `/tmp/claude-audit-prompt-<timestamp>.txt`
+4. Print status: "외부 모델 분석 중... ({tool})"
+5. Discover delegate.sh path from this skill's directory: `scripts/delegate.sh`
+6. Run: `Bash(<skill-dir>/scripts/delegate.sh <tool> /tmp/claude-audit-prompt-<timestamp>.txt)`
+7. Parse result:
+   - Exit 0 + non-empty stdout → attempt JSON parse. If valid JSON, use as insights. If parse fails (invalid JSON), log warning and fallback.
+   - Exit 0 + empty stdout → fallback
+   - Exit 1 → fallback
+8. **Fallback**: Print "외부 도구({tool})에서 오류가 발생했습니다. Claude Code 내부 분석으로 전환합니다." then run Agent 4 internally
+
+Set `meta.fallbackUsed = true` if fallback was triggered.
+
+## Phase 4: Assemble & Generate HTML Report
+
+Combine all 3 outputs into a single object:
+
+```json
+{
+  "meta": {
+    "timestamp": "<ISO 8601>",
+    "scope": "both|global|project",
+    "version": "2.0.0",
+    "analyzer": "gemini|openai|codex|claude-code|custom",
+    "analyzerCommand": "<actual command used>",
+    "fallbackUsed": false,
+    "projectPath": "<$PWD if scope includes project, null otherwise>"
+  },
+  "tokenAndConfig": {},
+  "skillsEcosystem": {},
+  "sessionAnomaly": {},
+  "insights": {}
+}
+```
+
+Then:
+
+1. Read the template: `templates/report-template.html` (relative to this skill's directory)
+2. JSON-stringify the combined results
+3. Replace `{{AUDIT_DATA}}` in the template with `const AUDIT_DATA_RAW = <stringified JSON>;`
+4. Write to: `/tmp/claude-audit-<timestamp>.html`
+   - timestamp format: YYYYMMDD-HHmmss
+
+## Phase 5: Open in Browser
+
+1. Try: `mcp__chrome-devtools__navigate_page` with `file:///tmp/claude-audit-<timestamp>.html`
+2. Fallback: `Bash(open /tmp/claude-audit-<timestamp>.html)` (macOS)
+3. Fallback: `Bash(xdg-open /tmp/claude-audit-<timestamp>.html)` (Linux)
+
+## Phase 6: Terminal Summary
+
+```
+## Audit Complete
+
+**Score:** XX/100 -- [Label]
+**Scope:** Both / Global / Project
+**Report:** /tmp/claude-audit-<timestamp>.html
+
+### Dimension Scores:
+- Token Efficiency: XX/100
+- Config Health: XX/100
+- Ecosystem Health: XX/100
+- Feature Utilization: XX/100
+- Automation Level: XX/100
+- Cross-Layer Harmony: XX/100
+
+### Top Findings:
+1. [Most impactful finding]
+2. [Second finding]
+3. [Third finding]
+
+### Quick Wins:
+- [Easiest fix command]
+- [Second easy fix]
+```
+
+## Key Rules
+
+- **No hardcoded paths.** Everything from settings.json discovery.
+- **Subagents return JSON only.** Include complete JSON example in every prompt.
+- **Token estimation:** chars / 4. Context window: 200,000 tokens.
+- **Read prompt files, don't @-import them.** Use Read tool to get content, then include in Agent prompt.
+- **Clean up:** The /tmp/ file persists for user reference. Do not delete it.

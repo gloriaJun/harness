@@ -1,0 +1,20 @@
+model = "gpt-5.3-codex"
+model_provider = "openai"
+personality = "pragmatic"
+
+# Add custom model providers per-machine:
+# [model_providers.custom]
+# name     = "Custom Provider"
+# base_url = "https://api.example.com/v1"
+# env_key  = "OPENAI_CODEX_API_KEY"
+# wire_api = "responses"
+
+# Add trusted projects per-machine:
+# [projects."/path/to/project"]
+# trust_level = "trusted"
+
+# MCP Servers — configure per-machine
+# [mcp_servers.mcp-confluence]
+# enabled = true
+# command = "npx"
+# args = ["@anthropic/mcp-confluence"]
