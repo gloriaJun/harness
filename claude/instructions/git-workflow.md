@@ -3,6 +3,7 @@
 ## Commit Message Convention
 - Follow the convention defined in ~/.gitmessage.txt
 - Always read ~/.gitmessage.txt before writing commit messages
+- Write commit messages (title and body) in English only
 
 ## Rules
 - Co-Authored-By line is optional — include only when user requests
