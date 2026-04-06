@@ -3,9 +3,25 @@
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
   },
   "permissions": {
-    "allow": [],
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git remote:*)",
+      "Bash(git revert:*)",
+      "Bash(gh api:*)",
+      "Bash(gh auth:*)",
+      "Bash(pnpm nx:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(brew install:*)",
+      "Bash(brew upgrade:*)",
+      "mcp__chrome-devtools",
+      "mcp__mcp-github"
+    ],
     "deny": [],
-    "defaultMode": "plan"
+    "defaultMode": "plan",
+    "additionalDirectories": []
   },
   "model": "opus[1m]",
   "hooks": {
@@ -21,6 +37,6 @@
       }
     ]
   },
-  "pluginMarketplaces": {},
-  "enabledPlugins": {}
+  "enabledPlugins": {},
+  "extraKnownMarketplaces": {}
 }

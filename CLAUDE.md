@@ -11,14 +11,15 @@ There is no build system, no package manager, and no test runner. The repo conta
 ## Repository Structure
 
 ```
-claude/          # Custom instruction files (PRINCIPLES, RULES, FLAGS)
-                 # Symlinked individually to ~/.claude/*.md
-                 # Other ~/.claude/*.md files are managed by SuperClaude plugin
+claude/          # Custom instruction files (CLAUDE.md, instructions/)
+                 # Symlinked to ~/.claude/
 hooks/           # Hook scripts, symlinked to ~/.claude/hooks/
 codex/           # Codex CLI settings
   rules/         # Shell command approval rules, symlinked to ~/.codex/rules/
 skills/          # Claude Code skills, symlinked to ~/.claude/skills/
   my-claude-audit/
+  task-process/  # Structured task workflow (PRD/TRD/features)
+  sync-config/   # Link shared config to project .claude/
 templates/       # Settings templates (no secrets, reference only)
 plugins.json     # Plugin marketplace manifest (reference only)
 setup.sh         # Symlink setup script
@@ -26,7 +27,7 @@ setup.sh         # Symlink setup script
 
 ## Key Files
 
-- **`claude/PRINCIPLES.md`**, **`RULES.md`**, **`FLAGS.md`** — Core instruction files shared between Claude Code (symlink) and Codex CLI (AGENTS.md generation).
+- **`claude/CLAUDE.md`** — Entry point instruction file, symlinked to `~/.claude/CLAUDE.md`.
 - **`setup.sh`** — Creates symlinks, generates `~/.codex/AGENTS.md`, shows plugin info. Run with `--dry-run` to preview.
 - **`plugins.json`** — Tracks which plugin marketplaces and plugins to install. Not auto-applied; reference for manual setup.
 

@@ -137,30 +137,62 @@
 
 ---
 
-### Phase 2: SuperClaude 플러그인 정리
+### Phase 2: Superpowers 플러그인 정리 및 설정 구조 개편
 
-> Phase 1 완료 후 진행. 플러그인 비활성화 및 대안 탐색.
+> Phase 1 완료 후 진행. 플러그인 비활성화, 설정 구조 개편, 대안 탐색.
 
-- [ ] **2-1. SuperClaude 플러그인 의존성 분석**
-  - 현재 활성화된 Superpowers 플러그인이 제공하는 skill/agent 목록 정리
-  - 어떤 skill이 SuperClaude `.md` 파일에 의존하는지 확인
-  - 독립적으로 동작하는 skill과 의존적인 skill 분류
+- [x] **2-1. Superpowers 플러그인 의존성 분석**
+  - Superpowers v5.0.2: 14개 skill + 1개 agent (code-reviewer) + session-start hook
+  - 레거시 참조(SuperClaude .md 파일) 없음 — 완전히 독립적
+  - 자동트리거 6개, 수동 8개. 워크플로우 체인: brainstorming → writing-plans → subagent-driven-development → finishing-a-development-branch
 
-- [ ] **2-2. 유지할 skill/agent 결정**
-  - brainstorming, writing-plans, TDD 등 개발 워크플로우 skill 평가
-  - code-review, debugging 등 품질 관련 skill 평가
-  - 사용 빈도 및 실제 유용성 기준으로 선별
-  - task-process에서 래핑할 외부 skill 최종 목록 확정
+- [x] **2-2. 유지할 skill/agent 결정**
+  - 결정: **전체 제거 후 클린 슬레이트** — 대안 탐색 후 필요한 것만 재구성
+  - Superpowers 플러그인 비활성화, 자체 skill은 아직 추가하지 않음
+  - 대안 플러그인/skill 마켓플레이스 탐색 → 최종 선택 후 구성
 
-- [ ] **2-3. 플러그인 비활성화/교체**
-  - `settings.json`의 `enabledPlugins`에서 SuperClaude 비활성화
-  - 대안 플러그인 탐색 및 테스트
-  - 필요 시 자체 skill로 대체 (harness/skills/에 추가)
+- [x] **2-3. 플러그인 비활성화**
+  - `settings.json`에서 `superpowers@superpowers-marketplace` 비활성화 (제거)
+  - `extraKnownMarketplaces`에서 `superpowers-marketplace` 제거
+  - 이미 비활성이던 `webdev-marketplace` 항목 2개도 제거
 
-- [ ] **2-4. settings.json 정리**
+- [ ] **2-4. 설정 구조 개편 — `_claude/` 통합 디렉토리**
+  - `_claude-work/` → `_claude/work-plan/` 으로 변경
+  - `_claude/config/` 추가: 프로젝트 공통 설정 심링크 소스
+  - 구조:
+    ```
+    ~/Documents/GitHubWork/
+      _claude/
+        config/              # 팀 공통 설정 (settings.local.json 등)
+        work-plan/           # 작업 문서 (_index.md, PRD, TRD 등)
+    ~/Documents/GitHubPrivate/
+      _claude/
+        config/              # 개인 공통 설정 (필요시)
+        work-plan/           # 작업 문서
+    ```
+  - 프로젝트 레벨: `.claude/settings.local.json` → `../../_claude/config/settings.local.json` (상대 심링크)
+  - GitHubPrivate 프로젝트는 독립적으로 운영 (심링크 선택적)
+
+- [x] **2-5. sync-config skill 작성**
+  - `skills/sync-config/SKILL.md`: `/sync-config` 명령으로 호출
+  - 현재 디렉토리에서 workspace 자동 판별 → `_claude/config/` 파일을 `.claude/`에 심링크
+  - 상대 경로 심링크, 기존 파일 덮어쓰기 전 확인 필수
+
+- [x] **2-6. task-process skill 경로 업데이트**
+  - `_claude-work` → `_claude/work-plan` 경로 참조 변경 완료
+
+- [ ] **2-7. 회사 플러그인 프로젝트 레벨 이동**
+  - 글로벌 settings.json에서 회사 플러그인/마켓플레이스 제거
+  - `_claude/config/settings.local.json`에 회사 플러그인 정의
+  - sync-config skill로 각 프로젝트에 배포
+
+- [ ] **2-8. settings.json 정리**
   - 불필요한 permissions 정리 (일회성 허용들 제거)
-  - `extraKnownMarketplaces` 정리
   - 템플릿화 (`templates/settings.json.example` 업데이트)
+
+- [ ] **2-9. 대안 플러그인 탐색**
+  - 사용 패턴과 업무에 적합한 플러그인/skill 마켓플레이스 탐색
+  - 필요 시 자체 skill로 대체 (harness/skills/에 추가)
 
 ---
 
@@ -202,7 +234,9 @@ harness/
     rtk-rewrite.sh                ← 기존 유지
   skills/
     my-claude-audit/              ← 기존 유지
-    task-process/                 ← NEW: 작업 워크플로우 skill
+    task-process/                 ← Phase 1: 작업 워크플로우 skill
+      SKILL.md
+    sync-config/                  ← Phase 2: 프로젝트 설정 심링크 skill
       SKILL.md
   templates/
     settings.json.example         ← 설정 참조용 (Phase 2에서 업데이트)
@@ -222,21 +256,32 @@ harness/
   skills/
     my-claude-audit/   → harness/skills/my-claude-audit/
     task-process/      → harness/skills/task-process/
+    sync-config/       → harness/skills/sync-config/
 ```
 
-## 작업 문서 구조 (_claude-work)
+## 작업 및 설정 구조 (_claude/)
 
 ```
-~/Documents/GitHubWork/_claude-work/        ← 회사 프로젝트
-  _index.md                                  ← 진행 중 작업 목록
-  YYYY-MM-DD-<repo>-<task-name>/
-    features.md                              ← feature 분할 목록
-    feature-01-<name>.md                     ← 세션별 작업 지시서
-    prd.md                                   ← 프로젝트에 docs/ 없을 때만
-    trd.md                                   ← 프로젝트에 docs/ 없을 때만
+~/Documents/GitHubWork/
+  _claude/
+    config/                                  ← 팀 공통 설정 (심링크 소스)
+      settings.local.json                    ← 회사 플러그인, MCP 등
+    work-plan/                               ← 작업 문서
+      _index.md                              ← 진행 중 작업 목록
+      YYYY-MM-DD-<repo>-<task-name>/
+        features.md                          ← feature 분할 목록
+        feature-01-<name>.md                 ← 세션별 작업 지시서
+        prd.md                               ← 프로젝트에 docs/ 없을 때만
+        trd.md                               ← 프로젝트에 docs/ 없을 때만
 
-~/Documents/GitHubPrivate/_claude-work/     ← 개인 프로젝트
-  (동일 구조)
+~/Documents/GitHubPrivate/
+  _claude/
+    config/                                  ← 개인 공통 설정 (선택적)
+      settings.local.json
+    work-plan/                               ← 작업 문서 (동일 구조)
+
+# 프로젝트 레벨 심링크 (sync-config skill로 생성)
+GitHubWork/one/.claude/settings.local.json → ../../_claude/config/settings.local.json
 ```
 
 `_index.md` 형식:

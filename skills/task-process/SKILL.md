@@ -18,8 +18,8 @@ Structured task workflow: Requirements Discovery → PRD → TRD → Feature Bre
 
 Before starting, resolve the work directory from the current project path:
 
-- Path contains `GitHubWork` → work dir: `~/Documents/GitHubWork/_claude-work/`
-- Path contains `GitHubPrivate` → work dir: `~/Documents/GitHubPrivate/_claude-work/`
+- Path contains `GitHubWork` → work dir: `~/Documents/GitHubWork/_claude/work-plan/`
+- Path contains `GitHubPrivate` → work dir: `~/Documents/GitHubPrivate/_claude/work-plan/`
 - Otherwise → ask the user to confirm which work directory to use.
 
 Read `_index.md` in the work directory at session start (if it exists) to resume any active tasks.
@@ -124,7 +124,7 @@ When all features are done:
 
 1. Do a final update of PRD and TRD (if they exist) to reflect any changes made during execution.
 2. Update `_index.md`: mark the task as `complete`.
-3. If PRD/TRD were saved in `_claude-work/` (temporary), ask the user:
+3. If PRD/TRD were saved in `_claude/work-plan/` (temporary), ask the user:
    - "These files were saved temporarily. Confirm to delete them, or specify if you want to keep/move them."
    - Delete only after explicit confirmation.
 4. Present a summary: what was built, files changed, and any follow-up items.

@@ -1,0 +1,25 @@
+{
+  "_comment": "GitHubWork project-level settings. Symlinked via sync-config skill.",
+  "enabledPlugins": {
+    "openchat@fe-marketplace": true,
+    "pr-management@fe-marketplace": true,
+    "openchat-create-release-wiki@fe-marketplace": true,
+    "one-release-workflow@line-internal-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "fe-marketplace": {
+      "source": {
+        "source": "directory",
+        "path": "{{MARKETPLACE_PATH}}"
+      },
+      "installLocation": "{{MARKETPLACE_PATH}}"
+    },
+    "line-internal-skills": {
+      "source": {
+        "source": "directory",
+        "path": "{{SKILLS_PATH}}"
+      },
+      "installLocation": "{{SKILLS_PATH}}"
+    }
+  }
+}
