@@ -87,12 +87,15 @@ safe_link() {
     fi
 }
 
-# --- generate_agents_md: concatenate claude/*.md into AGENTS.md ---
+# --- generate_agents_md: merge claude instructions into AGENTS.md ---
+# Combines CLAUDE.md + instructions/*.md so Codex CLI follows the same rules
 generate_agents_md() {
     local output="$CODEX_HOME/AGENTS.md"
+    local claude_md="$HARNESS_DIR/claude/CLAUDE.md"
+    local instructions_dir="$HARNESS_DIR/claude/instructions"
 
     if $DRY_RUN; then
-        dry "Generate $output from PRINCIPLES.md + RULES.md + FLAGS.md"
+        dry "Generate $output from CLAUDE.md + instructions/*.md"
         return
     fi
 
@@ -105,14 +108,22 @@ HEADER
     echo "# Generated: $(date +%Y-%m-%d)" >> "$output"
     echo "" >> "$output"
 
-    for f in PRINCIPLES.md RULES.md FLAGS.md; do
-        if [ -f "$HARNESS_DIR/claude/$f" ]; then
+    # Include CLAUDE.md (strip @import lines — they are inlined below)
+    if [ -f "$claude_md" ]; then
+        grep -v '^@instructions/' "$claude_md" >> "$output"
+        echo "" >> "$output"
+    fi
+
+    # Inline all instruction files
+    if [ -d "$instructions_dir" ]; then
+        for f in "$instructions_dir"/*.md; do
+            [ -e "$f" ] || continue
             echo "---" >> "$output"
             echo "" >> "$output"
-            cat "$HARNESS_DIR/claude/$f" >> "$output"
+            cat "$f" >> "$output"
             echo "" >> "$output"
-        fi
-    done
+        done
+    fi
 
     log "Generated: $output ($(wc -c < "$output" | tr -d ' ') bytes)"
 }
@@ -240,8 +251,25 @@ for f in "$HARNESS_DIR"/agents/*.md; do
     safe_link "$f" "$CLAUDE_HOME/agents/$fname"
 done
 
-# --- 5. Codex CLI: rules ---
-# (was section 4)
+# --- 5. Codex CLI: skills (compatible subset) ---
+# Only symlink skills that don't depend on Claude-specific tools (Agent, hooks, etc.)
+CODEX_COMPATIBLE_SKILLS="cleanup debug-process sync-config"
+echo ""
+echo "--- Codex CLI: skills ---"
+if [ -d "$CODEX_HOME" ]; then
+    mkdir -p "$CODEX_HOME/skills" 2>/dev/null || true
+    for skill in $CODEX_COMPATIBLE_SKILLS; do
+        if [ -d "$HARNESS_DIR/skills/$skill" ]; then
+            safe_link "$HARNESS_DIR/skills/$skill" "$CODEX_HOME/skills/$skill"
+        else
+            skip "Skill not found: $skill"
+        fi
+    done
+else
+    skip "Codex home not found ($CODEX_HOME)"
+fi
+
+# --- 6. Codex CLI: rules ---
 echo ""
 echo "--- Codex CLI: rules ---"
 if [ -d "$CODEX_HOME" ]; then
@@ -251,7 +279,7 @@ else
     skip "Codex home not found ($CODEX_HOME)"
 fi
 
-# --- 6. Codex CLI: generate AGENTS.md ---
+# --- 7. Codex CLI: generate AGENTS.md ---
 echo ""
 echo "--- Codex CLI: AGENTS.md ---"
 if [ -d "$CODEX_HOME" ]; then
@@ -260,10 +288,10 @@ else
     skip "Codex home not found ($CODEX_HOME)"
 fi
 
-# --- 7. Plugin info ---
+# --- 8. Plugin info ---
 show_plugin_info
 
-# --- 8. Claude Code: settings.json hook registration ---
+# --- 9. Claude Code: settings.json hook registration ---
 echo ""
 echo "--- Claude Code: settings.json hook registration ---"
 register_rtk_hook() {
