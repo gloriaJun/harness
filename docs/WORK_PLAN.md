@@ -31,7 +31,7 @@
 
 #### 지침 정의 (설계 완료)
 
-- [ ] **1-1. `claude/CLAUDE.md` 작성**
+- [x] **1-1. `claude/CLAUDE.md` 작성**
   - 핵심 원칙만 포함 (짧게)
   - 한국어 응답 선호
   - 코드 변경 전 확인 필수, 근거/설명 포함
@@ -55,7 +55,7 @@
   @instructions/git-workflow.md
   ```
 
-- [ ] **1-2. `claude/instructions/tech-stack.md` 작성**
+- [x] **1-2. `claude/instructions/tech-stack.md` 작성**
   - 패키지 매니저: pnpm 선호
   - 프로젝트별 기술 스택은 각 레포의 CLAUDE.md에서 정의
 
@@ -70,7 +70,7 @@
   - This file covers cross-project preferences only
   ```
 
-- [ ] **1-3. `claude/instructions/git-workflow.md` 작성**
+- [x] **1-3. `claude/instructions/git-workflow.md` 작성**
   - `~/.gitmessage.txt` 파일을 직접 참조 (내용 복제 금지)
   - Co-Authored-By 선택적, amend 금지, 개별 파일 스테이징
 
@@ -87,7 +87,7 @@
   - Stage specific files, avoid `git add -A`
   ```
 
-- [ ] **1-4. `skills/task-process/SKILL.md` 작성**
+- [x] **1-4. `skills/task-process/SKILL.md` 작성**
   - skill로 분리하여 호출 시에만 컨텍스트 로드 (레이지 로딩)
   - 워크플로우: 요구사항 발견 → PRD → TRD(조건부) → Feature 분할 → 실행 → 완료
   - 매 단계 사용자 확인 필수
