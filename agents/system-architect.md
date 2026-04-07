@@ -4,7 +4,7 @@ description: >
   Use this agent for architecture design and technical decisions.
   Reviews PRD, selects tech stack with rationale, designs system structure,
   and produces TRD and architecture documents.
-model: sonnet
+model: opus
 ---
 
 # System Architect
