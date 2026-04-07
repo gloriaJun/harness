@@ -74,7 +74,9 @@ stateDiagram-v2
     }
 
     Execution --> Completion: all features done
-    Completion --> [*]: task complete
+    Completion --> Insight: summary done
+    state "g-insight" as Insight
+    Insight --> [*]: task complete
 ```
 
 ---

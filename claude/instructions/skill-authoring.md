@@ -3,6 +3,15 @@
 Skills in this project follow these authoring rules.
 These rules also apply when using the skill-creator plugin to generate new skills.
 
+## Language Convention
+
+All skill and instruction files must be written in **English only**.
+English is more token-efficient (~1.5-2x fewer tokens than Korean for the same content).
+These files are loaded into context every session, so token savings compound.
+
+- SKILL.md body, step files, mermaid labels, comments: **English**
+- User-facing output (conversation responses): Determined by user preference (e.g. CLAUDE.md `Respond in Korean`), not hardcoded in skill files
+
 ## SKILL.md = Orchestrator Only
 
 SKILL.md is a thin orchestrator — it routes to sub-files, not implements logic inline.

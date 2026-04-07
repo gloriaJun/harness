@@ -16,11 +16,11 @@ on `git commit` commands.
 
 ```mermaid
 flowchart TD
-    A1(["git commit 감지"]) --> C
+    A1(["git commit detected"]) --> C
     A2(["/g-pre-commit-check"]) --> C
     C["1. Gather Changes"]
     C --> D{"staged changes?"}
-    D -- None --> E["unstaged 알림"]
+    D -- None --> E["Notify unstaged"]
     D -- Yes --> F["2. Summarize"]
     F --> G["3. Review Checklist"]
     G --> H["4. Present Results"]

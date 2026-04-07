@@ -15,4 +15,6 @@ When all features are done.
    - What was built
    - Files changed
    - Follow-up items
-5. Clean up `_state.json`: optionally archive or delete based on user preference.
+5. Run **g-insight**: Load and execute `skills/insight/SKILL.md` inline (in main context).
+   This reviews the entire task workflow and suggests harness improvements.
+6. Clean up `_state.json`: optionally archive or delete based on user preference.

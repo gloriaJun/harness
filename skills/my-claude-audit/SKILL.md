@@ -54,12 +54,12 @@ Scan for available external CLI tools:
 1. Run `which gemini`, `which openai`, `which codex` to detect installed tools
 2. Check env vars: `GEMINI_API_KEY`, `OPENAI_API_KEY` (existence only)
 
-Ask the user with AskUserQuestion (Korean labels):
+Ask the user with AskUserQuestion:
 
 Build options dynamically — only show installed tools. Always include:
-- Each installed tool as an option, annotated with "(API 키 감지)" if env var exists
-- **Claude Code (내장)** — always available, no external dependency
-- **직접 입력** — user types a custom CLI command
+- Each installed tool as an option, annotated with "(API key detected)" if env var exists
+- **Claude Code (built-in)** — always available, no external dependency
+- **Custom input** — user types a custom CLI command
 
 Store the selection for Phase 3 delegation and `meta.analyzer` report attribution.
 
@@ -124,14 +124,14 @@ Agent 4: insights-aggregator.md prompt + combined JSON from Agents 1, 2 & 3 + sc
 1. Read `analyzer-prompts/insights-aggregator.md` using the Read tool
 2. Combine: insights-aggregator prompt + all 3 agent JSONs + scope info
 3. Write combined prompt to `/tmp/claude-audit-prompt-<timestamp>.txt`
-4. Print status: "외부 모델 분석 중... ({tool})"
+4. Print status: "Analyzing with external model... ({tool})"
 5. Discover delegate.sh path from this skill's directory: `scripts/delegate.sh`
 6. Run: `Bash(<skill-dir>/scripts/delegate.sh <tool> /tmp/claude-audit-prompt-<timestamp>.txt)`
 7. Parse result:
    - Exit 0 + non-empty stdout → attempt JSON parse. If valid JSON, use as insights. If parse fails (invalid JSON), log warning and fallback.
    - Exit 0 + empty stdout → fallback
    - Exit 1 → fallback
-8. **Fallback**: Print "외부 도구({tool})에서 오류가 발생했습니다. Claude Code 내부 분석으로 전환합니다." then run Agent 4 internally
+8. **Fallback**: Print "External tool ({tool}) failed. Falling back to Claude Code internal analysis." then run Agent 4 internally
 
 Set `meta.fallbackUsed = true` if fallback was triggered.
 
