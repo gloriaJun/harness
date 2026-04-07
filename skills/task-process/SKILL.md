@@ -9,10 +9,73 @@ description: >
   Manual invocation only.
 ---
 
-# g-task-process Skill
+# g-task-process Orchestrator
 
-Single orchestrator managing the full lifecycle from ideation to completion.
-Each step is handled by an independent agent. Confirmation required at every step.
+Lightweight orchestrator that routes to step-specific instructions via lazy loading.
+Each step's details live in `steps/step-N-*.md` and are loaded only when needed.
+
+---
+
+## Flow Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Entry: invoke /g-task-process
+
+    Entry --> Ideation: "I have an idea"
+    Entry --> Requirements: "I want to define requirements"
+    Entry --> Design: "I have a PRD"
+    Entry --> Breakdown: "Design is done"
+    Entry --> Execution: "Just implement"
+
+    state "Step 1: Ideation" as Ideation
+    state "Step 2: Requirements -> PRD" as Requirements
+    state "Step 3: Design -> TRD" as Design
+    state "Step 4: Feature Breakdown" as Breakdown
+    state "Step 5: Execution Loop" as Execution
+    state "Step 6: Completion" as Completion
+
+    Ideation --> Requirements: brainstorm.md + user confirm
+    Requirements --> Review_PRD: PRD draft ready
+
+    state "PRD Review (3-layer)" as Review_PRD {
+        [*] --> Plannotator_PRD
+        Plannotator_PRD --> User_Approve_PRD
+        User_Approve_PRD --> Codex_Review_PRD
+        Codex_Review_PRD --> [*]
+    }
+
+    Review_PRD --> Design: user confirm
+    Review_PRD --> Requirements: revision requested
+
+    Design --> Skip_TRD: no UI + single system
+    Design --> Review_TRD: TRD draft ready
+    Skip_TRD --> Breakdown
+
+    state "TRD Review (3-layer)" as Review_TRD {
+        [*] --> Plannotator_TRD
+        Plannotator_TRD --> User_Approve_TRD
+        User_Approve_TRD --> Codex_Review_TRD
+        Codex_Review_TRD --> [*]
+    }
+
+    Review_TRD --> Breakdown: user confirm
+    Review_TRD --> Design: revision requested
+
+    Breakdown --> Execution: features.md + user confirm
+
+    state "Feature Execution" as Execution {
+        [*] --> Pick_Feature
+        Pick_Feature --> Implement: feature-executor
+        Implement --> Cross_Review: code-reviewer
+        Cross_Review --> Resolve
+        Resolve --> Pick_Feature: next feature
+        Resolve --> [*]: all features done
+    }
+
+    Execution --> Completion: all features done
+    Completion --> [*]: task complete
+```
 
 ---
 
@@ -26,163 +89,46 @@ Resolve the work directory from the current project path:
 
 Create a task subdirectory: `<work-dir>/YYYY-MM-DD-<repo>-<task-name>/`
 
-Read `_index.md` in the work directory at session start (if it exists) to resume any active tasks.
+---
+
+## Session Restoration
+
+1. Check if `_state.json` exists in the task directory.
+2. **Exists**: Read it. Verify all `artifacts` paths exist on disk.
+   - Announce: "Resuming task **<taskName>** at Step <currentStep>."
+   - Load the step file for `currentStep`.
+3. **Does not exist**: This is a new task. Load `steps/step-0-entry.md`.
 
 ---
 
-## Step 0: Entry Point Selection
+## Step Router
 
-Ask the user to select their starting point:
+Read ONLY the step file for the current step. Never preload other steps.
 
-| Choice | What you have | Starts at |
-|--------|--------------|-----------|
-| "I have an idea" | Vague concept | Step 1 (idea-explorer) |
-| "I want to define requirements" | Rough requirements | Step 2 (requirements-analyst) |
-| "I have a PRD / planning doc" | External PRD | Step 3 (system-architect) |
-| "Design is done" | PRD + TRD | Step 4 (feature breakdown) |
-| "Just implement" | Clear scope | Step 5 (feature-executor) |
+| currentStep | Load file              | Pre-condition guard                    |
+|-------------|------------------------|----------------------------------------|
+| 0           | steps/step-0-entry.md  | (none)                                 |
+| 1           | steps/step-1-ideation.md | (none)                                |
+| 2           | steps/step-2-requirements.md | `artifacts.brainstorm` OR user input exists |
+| 3           | steps/step-3-design.md | `artifacts.prd` exists                 |
+| 4           | steps/step-4-breakdown.md | `artifacts.prd` exists (trd optional) |
+| 5           | steps/step-5-execution.md | `artifacts.features` exists           |
+| 6           | steps/step-6-completion.md | all `features[].status == "done"`    |
 
-If the user has an external document (planning doc, PRD, etc.):
-- Ask for the file path
-- Copy or link it into the task subdirectory
-- Use it as input for the appropriate agent
-
-**Confirm selection with user before proceeding.**
+**Pre-condition check**: Before loading a step file, verify its pre-condition.
+If the condition is not met, warn the user and do NOT proceed.
 
 ---
 
-## Step 1: Ideation (idea-explorer agent)
+## State Management
 
-Goal: Expand a vague idea into concrete directions.
+All state is persisted in `_state.json` within the task subdirectory.
+See `schemas/state.md` for the full schema and update rules.
 
-1. Invoke the `idea-explorer` agent with the user's idea description.
-2. The agent produces `brainstorm.md` in the task subdirectory.
-3. Present `brainstorm.md` to the user.
-
-**Confirm with user before proceeding to Step 2.**
-
----
-
-## Step 2: Requirements -> PRD (requirements-analyst agent)
-
-Goal: Structure requirements into a formal PRD.
-
-### Input
-- `brainstorm.md` (from Step 1), OR
-- User's requirements description, OR
-- External planning document
-
-### Process
-1. Invoke the `requirements-analyst` agent with available inputs.
-2. The agent produces `PRD-<task-name>.md`.
-   - Location: project `docs/` if it exists, otherwise task subdirectory.
-
-### Review (3-layer)
-1. **Plannotator**: Open PRD in Plannotator for visual review.
-   - If Plannotator is not available, present the PRD as text.
-2. **User approval**: Wait for user to approve or request changes.
-3. **Codex cross-review**: After user approval, request Codex review.
-   - Via codex-plugin-cc: `/codex:rescue "Review this PRD for missing requirements, ambiguity, and feasibility: <path>"`
-   - Via Codex CLI: `codex exec --read <PRD-path> "Review this PRD: identify missing requirements, ambiguous items, and feasibility concerns"`
-   - If Codex is not available, skip and note it.
-4. Present Codex review results -> user decides whether to incorporate.
-
-**Confirm with user before proceeding to Step 3.**
-
----
-
-## Step 3: Design -> TRD (system-architect agent)
-
-### Skip Condition
-Skip if **both** are true:
-- No UI or design changes involved
-- Logic-only change within a single system or file
-
-If skipping, inform the user and proceed to Step 4.
-
-### Input
-- `PRD-<task-name>.md` (from Step 2 or external)
-- Existing codebase context
-
-### Process
-1. Invoke the `system-architect` agent with the PRD and codebase context.
-2. The agent produces `TRD-<task-name>.md` (+ `architecture.md` if needed).
-   - Location: same as PRD.
-
-### Review (3-layer)
-1. **Plannotator**: Open TRD in Plannotator for visual review.
-2. **User approval**: Wait for approval or changes.
-3. **Codex cross-review**: Request Codex review of TRD.
-   - Focus: technical feasibility, missing edge cases, security concerns.
-4. Present Codex review results -> user decides whether to incorporate.
-
-**Confirm with user before proceeding to Step 4.**
-
----
-
-## Step 4: Feature Breakdown
-
-Goal: Decompose work into features, each completable in a single session.
-
-### Single-Session Principle
-A feature is scoped so it can be fully implemented, tested, and committed within one Claude Code session. If a feature seems too large, split it further.
-
-### Process
-1. Based on PRD + TRD, produce a numbered feature list:
-   - Feature name
-   - Brief description
-   - Files or modules affected
-   - Acceptance criteria (from PRD)
-2. Write `features.md` in the task subdirectory.
-3. Write individual `feature-XX-<name>.md` files with detailed specs.
-4. **Plannotator**: Open feature breakdown for visual review.
-5. Update `_index.md` with task entry (status: `in-progress`).
-
-**Confirm with user before proceeding to Step 5.**
-
----
-
-## Step 5: Feature Execution (feature-executor agent, per feature)
-
-Execute features one at a time, in order.
-
-### Per Feature:
-
-#### 5a. Implementation
-1. State which feature is being worked on.
-2. Invoke the `feature-executor` agent with:
-   - The feature spec (`feature-XX-<name>.md`)
-   - PRD and TRD paths for context
-3. The feature-executor asks the user: **Claude or Codex** for implementation.
-4. Implementation proceeds based on user choice.
-
-#### 5b. Cross-Review
-After implementation:
-- **Claude implemented** -> invoke `code-reviewer` agent, which delegates to `/codex:review`
-- **Codex implemented** -> invoke `code-reviewer` agent, which reviews with Claude
-
-If the feature involves frontend changes:
-- Additionally invoke `frontend-reviewer` agent.
-
-#### 5c. Review Resolution
-1. Present review findings to the user.
-2. If changes requested: fix and re-review (max 2 iterations).
-3. Update `_index.md` to mark the feature complete.
-
-**Confirm with user before starting the next feature.**
-
----
-
-## Step 6: Completion
-
-When all features are done:
-
-1. Final update of PRD and TRD to reflect any changes made during execution.
-2. Update `_index.md`: mark the task as `complete`.
-3. If documents were saved in the task subdirectory (temporary):
-   - Ask: "These files were saved temporarily. Delete, keep, or move?"
-   - Delete only after explicit confirmation.
-4. Present summary: what was built, files changed, follow-up items.
+Key rules:
+- Update `currentStep` BEFORE loading the next step file.
+- Register artifact paths as soon as files are created.
+- Append to `history` at every state transition.
 
 ---
 
@@ -208,22 +154,3 @@ When all features are done:
 | Codex CLI (`codex exec`) | Non-interactive task delegation | Claude agent handles directly |
 
 Never stop the workflow because a tool is missing. Fall back gracefully.
-
----
-
-## _index.md Schema
-
-```markdown
-# Claude Work Index
-
-## Active Tasks
-
-### <task-name>
-- Status: in-progress | complete
-- Entry: idea | requirements | external-prd | design | direct
-- PRD: <path> | external:<path>
-- TRD: <path> | skipped
-- Features:
-  - [ ] Feature 1 (executor: claude | codex)
-  - [x] Feature 2 (executor: codex, reviewer: claude)
-```
