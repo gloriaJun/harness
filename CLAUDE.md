@@ -53,6 +53,11 @@ description: >
 ---
 ```
 
+### Authoring Convention
+
+For skill authoring rules (orchestrator pattern, mermaid diagrams, script extraction),
+see `claude/instructions/skill-authoring.md`.
+
 ### Subagent Pattern (for my-claude-audit)
 
 1. **Prompt files** in `analyzer-prompts/` define each subagent's task

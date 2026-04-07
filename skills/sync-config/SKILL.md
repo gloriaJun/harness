@@ -12,6 +12,20 @@ Link shared configuration files from the workspace `_claude/config/` to the curr
 
 **Default target: the directory where this skill is invoked (project root).**
 
+## Workflow
+
+```mermaid
+flowchart TD
+    A(["/g-sync-config"]) --> B["Step 1: Detect Context"]
+    B --> C["Step 2: Verify Config Source"]
+    C --> D{"config dir exists?"}
+    D -- No --> E["Create directory"]
+    E --> F
+    D -- Yes --> F["Step 3: Select Files"]
+    F --> G["Step 4: Create Symlinks"]
+    G --> H(["Step 5: Summary"])
+```
+
 ---
 
 ## Step 1: Detect Context

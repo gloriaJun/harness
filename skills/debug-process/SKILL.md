@@ -11,6 +11,23 @@ description: >
 Structured debugging workflow to avoid scattered investigation.
 Forces systematic hypothesis-driven debugging.
 
+## Workflow
+
+```mermaid
+flowchart TD
+    A(["/g-debug-process"]) --> B["Step 1: Symptom Collection"]
+    B --> C["Step 2: Reproduction"]
+    C --> D{"Reproduced?"}
+    D -- No --> B
+    D -- Yes --> E["Step 3: Hypothesis Formation"]
+    E --> F["Step 4: Verification"]
+    F --> G{"Confirmed?"}
+    G -- "All disproved" --> E
+    G -- "Confirmed" --> H["Step 5: Root Cause"]
+    H --> I["Step 6: Fix"]
+    I --> J(["Complete"])
+```
+
 ---
 
 ## Step 1: Symptom Collection

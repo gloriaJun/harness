@@ -10,6 +10,21 @@ description: >
 
 Diagnose disk usage and selectively clean up ephemeral data from Claude Code and Codex CLI.
 
+## Workflow
+
+```mermaid
+flowchart TD
+    A(["/g-cleanup"]) --> B["Step 1: Diagnose"]
+    B --> C["Step 2: Select Mode"]
+    C -- Cancel --> Z(["Abort"])
+    C -- Selected --> D["Step 3: Retention Period"]
+    D --> E["Step 4: Dry Run Preview"]
+    E --> F{"Confirm?"}
+    F -- No --> Z
+    F -- Yes --> G["Step 5: Execute Cleanup"]
+    G --> H(["Complete"])
+```
+
 ---
 
 ## Protected Paths (NEVER delete)

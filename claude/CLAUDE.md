@@ -10,3 +10,4 @@
 ## References
 @instructions/tech-stack.md
 @instructions/git-workflow.md
+@instructions/skill-authoring.md

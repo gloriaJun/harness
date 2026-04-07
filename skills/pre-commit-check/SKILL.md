@@ -12,6 +12,25 @@ Automated self-review before every commit. This skill is triggered proactively
 when Claude detects commit intent, and also enforced via a PreToolUse hook
 on `git commit` commands.
 
+## Workflow
+
+```mermaid
+flowchart TD
+    A1(["git commit 감지"]) --> C
+    A2(["/g-pre-commit-check"]) --> C
+    C["1. Gather Changes"]
+    C --> D{"staged changes?"}
+    D -- None --> E["unstaged 알림"]
+    D -- Yes --> F["2. Summarize"]
+    F --> G["3. Review Checklist"]
+    G --> H["4. Present Results"]
+    H --> I{"Issues?"}
+    I -- No --> J(["Proceed"])
+    I -- Yes --> K["5. User Decision"]
+    K -- Fix --> C
+    K -- Proceed --> J
+```
+
 ---
 
 ## When to Run

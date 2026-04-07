@@ -14,49 +14,29 @@ Comprehensive audit of your Claude Code configuration with an interactive HTML d
 
 ## Workflow
 
-```dot
-digraph workflow {
-    rankdir=TB;
+```mermaid
+flowchart TD
+    A(["/g-my-claude-audit"]) --> B["Phase 0: Scope Selection"]
+    B --> C["Phase 0.5: Model Selection"]
+    C --> D["Phase 1: Discovery\nsettings.json + session logs"]
+    D --> E["Phase 2: Parallel Dispatch"]
 
-    "User: /g-my-claude-audit" [shape=doublecircle];
-    "Ask scope" [shape=box];
-    "Ask model" [shape=box];
-    "Discovery: read settings.json" [shape=box];
-    "Session log discovery" [shape=box];
-    "Parallel dispatch (3 agents)" [shape=box];
-    "Token & Config Analyzer" [shape=box];
-    "Skills Ecosystem Analyzer" [shape=box];
-    "Session Anomaly Tagger" [shape=box];
-    "Wait for parallel agents" [shape=box];
-    "Auth check selected model" [shape=diamond];
-    "Delegate to external CLI" [shape=box];
-    "Fallback: Claude internal" [shape=box];
-    "Insights Aggregator" [shape=box];
-    "Generate HTML report" [shape=box];
-    "Open in browser" [shape=box];
-    "Print terminal summary" [shape=doublecircle];
+    E --> F1["Token & Config Analyzer"]
+    E --> F2["Skills Ecosystem Analyzer"]
+    E --> F3["Session Anomaly Tagger"]
 
-    "User: /g-my-claude-audit" -> "Ask scope";
-    "Ask scope" -> "Ask model";
-    "Ask model" -> "Discovery: read settings.json";
-    "Discovery: read settings.json" -> "Session log discovery";
-    "Session log discovery" -> "Parallel dispatch (3 agents)";
-    "Parallel dispatch (3 agents)" -> "Token & Config Analyzer";
-    "Parallel dispatch (3 agents)" -> "Skills Ecosystem Analyzer";
-    "Parallel dispatch (3 agents)" -> "Session Anomaly Tagger";
-    "Token & Config Analyzer" -> "Wait for parallel agents";
-    "Skills Ecosystem Analyzer" -> "Wait for parallel agents";
-    "Session Anomaly Tagger" -> "Wait for parallel agents";
-    "Wait for parallel agents" -> "Auth check selected model";
-    "Auth check selected model" -> "Delegate to external CLI" [label="external"];
-    "Auth check selected model" -> "Insights Aggregator" [label="claude-code"];
-    "Delegate to external CLI" -> "Insights Aggregator" [label="success"];
-    "Delegate to external CLI" -> "Fallback: Claude internal" [label="fail"];
-    "Fallback: Claude internal" -> "Insights Aggregator";
-    "Insights Aggregator" -> "Generate HTML report";
-    "Generate HTML report" -> "Open in browser";
-    "Open in browser" -> "Print terminal summary";
-}
+    F1 & F2 & F3 --> G["Wait for all agents"]
+
+    G --> H{"Selected model?"}
+    H -- "external CLI" --> I["scripts/delegate.sh"]
+    H -- "claude-code" --> J["Insights Aggregator"]
+    I -- "success" --> J
+    I -- "fail" --> K["Fallback: Claude internal"]
+    K --> J
+
+    J --> L["Phase 4: Generate HTML\ntemplates/report-template.html"]
+    L --> M["Phase 5: Open in browser"]
+    M --> N(["Phase 6: Terminal Summary"])
 ```
 
 ## Phase 0: Scope Selection
