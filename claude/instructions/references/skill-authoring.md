@@ -20,6 +20,65 @@ SKILL.md is a thin orchestrator — it routes to sub-files, not implements logic
 - Delegate detailed logic to `steps/`, `scripts/`, `references/`
 - Reference model: `skills/task-process/SKILL.md`
 
+## README.md = Human Documentation
+
+Every skill must include a `README.md` alongside `SKILL.md`. While SKILL.md is LLM-facing
+(orchestration logic), README.md is human-facing (features, usage, architecture).
+
+- Language: **English** (follows the same convention as SKILL.md)
+- Reference model: `skills/my-claude-audit/README.md`
+
+### Template
+
+```markdown
+# skill-name
+
+One-line description.
+
+## Features
+
+- **Feature A** — explanation
+- **Feature B** — explanation
+
+## Usage
+
+\`\`\`
+/g-skill-name
+\`\`\`
+
+## How It Works
+
+Brief architecture or workflow description.
+Subagent table if applicable.
+
+## Installation
+
+\`\`\`bash
+ln -s /path/to/skill ~/.claude/skills/skill-name
+\`\`\`
+
+## Requirements
+
+- Claude Code CLI
+- (optional dependencies)
+
+## License
+
+MIT
+```
+
+### Required vs Optional Sections
+
+| Section | Required | Notes |
+|---------|----------|-------|
+| Name + description | Yes | H1 + one-line summary |
+| Features | Yes | Bullet list of key capabilities |
+| Usage | Yes | Command invocation example |
+| How It Works | Yes | Workflow overview, subagent table if applicable |
+| Installation | Optional | Include when install steps are non-obvious |
+| Requirements | Optional | Include when external dependencies exist |
+| License | Optional | Default MIT |
+
 ### Step Extraction
 
 | Condition | Action |
