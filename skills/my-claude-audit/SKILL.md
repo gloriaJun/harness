@@ -19,11 +19,12 @@ flowchart TD
     A(["/g-my-claude-audit"]) --> B["Phase 0: Scope Selection"]
     B --> C["Phase 0.5: Model Selection"]
     C --> D["Phase 1: Discovery\nsettings.json + session logs"]
-    D --> E["Phase 2: Parallel Dispatch"]
+    D --> D2["Phase 1.5: Agent Usage\nPython script (no tokens)"]
+    D2 --> E["Phase 2: Parallel Dispatch"]
 
     E --> F1["Token & Config Analyzer"]
     E --> F2["Skills Ecosystem Analyzer"]
-    E --> F3["Session Anomaly Tagger"]
+    E --> F3["Session Anomaly Tagger\n+ agent usage data"]
 
     F1 & F2 & F3 --> G["Wait for all agents"]
 
@@ -89,6 +90,20 @@ If project scope (both or project-only):
 - Sort by modification time descending, select up to 5 most recent
 - If no JSONL files found, note as info-level and skip session analysis
 
+## Phase 1.5: Agent Usage Analysis (Python — zero tokens)
+
+Run the agent usage analyzer script to extract agent delegation patterns from session logs.
+This runs as a Python process, consuming no LLM tokens.
+
+1. Discover the script path: `<skill-dir>/scripts/agent-usage-analyzer.py`
+2. Run: `Bash(python3 <skill-dir>/scripts/agent-usage-analyzer.py --days 30)`
+3. Parse stdout as JSON and store as `agentUsageData`
+4. If exit code != 0 or empty output, set `agentUsageData = null` and continue (graceful skip)
+
+Pass `agentUsageData` to:
+- **Agent 3** (Session Anomaly Tagger) as additional input
+- **Agent 4** (Insights Aggregator) as additional input
+
 ## Phase 2: Dispatch Parallel Subagents
 
 Dispatch using the Agent tool (subagent_type: Explore).
@@ -104,7 +119,7 @@ Dispatch using the Agent tool (subagent_type: Explore).
 ```
 Agent 1: token-and-config.md prompt + discovery data + scope
 Agent 2: skills-ecosystem.md prompt + enabledPlugins + pluginMarketplaces
-Agent 3: session-anomaly-tagger.md prompt + session JSONL file paths
+Agent 3: session-anomaly-tagger.md prompt + session JSONL file paths + agentUsageData JSON
 ```
 
 All three run in parallel. Wait for all to complete.
@@ -153,9 +168,12 @@ Combine all 3 outputs into a single object:
   "tokenAndConfig": {},
   "skillsEcosystem": {},
   "sessionAnomaly": {},
+  "agentUsage": {},
   "insights": {}
 }
 ```
+
+**Note:** `agentUsage` is the raw JSON output from Phase 1.5 Python script (not from a subagent).
 
 Then:
 

@@ -8,6 +8,7 @@ You will receive:
 
 1. List of JSONL session file paths (max 5 most recent sessions)
 2. Current project directory path
+3. **Agent Usage Data** (JSON from Python script, may be null) — pre-analyzed agent delegation patterns across all projects
 
 ## Your Tasks
 
@@ -52,6 +53,19 @@ Apply these tags based on the per-session statistics:
 | `TAG_SILENT_FIX` | More than 30% of user messages are short prompts without constraints |
 | `TAG_BLIND_FOLLOW` | Verification rate < 0.3 (less than 30% of code outputs were verified) |
 
+### 3.5 Agent Usage Tags (from pre-analyzed data)
+
+If `agentUsageData` is provided (not null), apply these additional tags using the `globalStats` and `projects` fields:
+
+| Tag | Condition |
+|-----|-----------|
+| `TAG_NO_DELEGATION` | `globalStats.totalAgentCalls` is 0 across all sessions — user never delegates to agents |
+| `TAG_PARALLEL_CAP_BREACH` | Any project has violations with rule `PARALLEL_CAP_EXCEEDED` |
+| `TAG_OPUS_SUBAGENT` | Any project has violations with rule `SUBAGENT_OPUS_WITHOUT_ESCALATION` |
+| `TAG_NO_CODEX` | `globalStats.totalCodexCalls` is 0 — Codex CLI never used for cross-review |
+
+Do NOT re-parse JSONL files for agent data — use only the pre-analyzed `agentUsageData`.
+
 ### 4. Generate Findings
 
 For each triggered tag, create a finding with:
@@ -81,7 +95,7 @@ Return ONLY valid JSON. No prose, no markdown, no explanation outside the JSON.
     "sessionsAnalyzed": 5,
     "totalTurns": 142,
     "avgPromptLength": 67,
-    "anomalyTags": ["TAG_CTX_HOARD", "TAG_SILENT_FIX"]
+    "anomalyTags": ["TAG_CTX_HOARD", "TAG_SILENT_FIX", "TAG_OPUS_SUBAGENT"]
   },
   "sessionBreakdown": [
     {

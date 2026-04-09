@@ -9,6 +9,7 @@ You will receive the combined JSON outputs from:
 1. **Token & Config Analyzer** (category: "token-and-config")
 2. **Skills Ecosystem Analyzer** (category: "skills-ecosystem")
 3. **Session Anomaly Tagger** (category: "session-anomaly")
+4. **Agent Usage Data** (category: "agent-usage") — pre-analyzed by Python script (may be null)
 
 Plus the scope: "both", "global", or "project"
 
@@ -55,14 +56,15 @@ For each opportunity, provide:
 
 Calculate a comprehensive score from 0-100 across **6 dimensions**:
 
-| Dimension           | Weight | What it measures                                       |
-| ------------------- | ------ | ------------------------------------------------------ |
-| Token Efficiency    | 20%    | Context budget usage, oversized files, `@` chain depth |
-| Config Health       | 20%    | Permissions hygiene, hook validity, semantic conflicts |
-| Ecosystem Health    | 15%    | Skill overlaps, CSO quality, disabled plugins          |
-| Feature Utilization | 15%    | Custom commands, agents, memory, output style usage    |
-| Automation Level    | 15%    | Hook coverage, manual-to-automated ratio               |
-| Cross-Layer Harmony | 15%    | Overlap/gap between global and project layers          |
+| Dimension              | Weight | What it measures                                       |
+| ---------------------- | ------ | ------------------------------------------------------ |
+| Token Efficiency       | 15%    | Context budget usage, oversized files, `@` chain depth |
+| Config Health          | 15%    | Permissions hygiene, hook validity, semantic conflicts |
+| Ecosystem Health       | 15%    | Skill overlaps, CSO quality, disabled plugins          |
+| Feature Utilization    | 15%    | Custom commands, agents, memory, output style usage    |
+| Automation Level       | 10%    | Hook coverage, manual-to-automated ratio               |
+| Cross-Layer Harmony    | 10%    | Overlap/gap between global and project layers          |
+| Agent Delegation       | 20%    | Agent usage patterns, model selection, guidelines compliance |
 
 **Per-dimension scoring:**
 
@@ -108,6 +110,14 @@ Cross-Layer Harmony (0-100):
 - Deduct 10 per instruction overlap
 - Deduct 15 per hook conflict
 - Deduct 10 per permission conflict
+
+Agent Delegation (0-100) — skip if `agentUsageData` is null:
+
+- Has any agent calls: +30, else 0
+- Uses Codex CLI for cross-review: +20, else 0
+- Parallel cap compliance = 100%: +20, else deduct 10 per violation
+- Subagent model is sonnet (no opus without escalation): +15, else deduct 5 per opus usage
+- Has parallel batches (uses parallelism): +15, else 0
 
 **Final score** = weighted average of all dimensions
 
@@ -163,6 +173,10 @@ Tag-to-patch mapping:
 | TAG_CTX_HOARD | "- [조건]: 대화가 15턴을 초과할 경우.\n- [행동]: 세션 요약 후 /clear 할 것을 강력히 권고. 20턴 초과 시 매 응답 앞에 경고 표시." |
 | TAG_BLIND_FOLLOW | "- [조건]: 코드 생성 직후 테스트 없이 다음 구현 요청.\n- [행동]: '이전 변경사항을 먼저 검증하셨나요? npm test 또는 관련 명령을 실행해 주세요'라고 요청." |
 | TAG_ONESHOT_WAR | "- [조건]: 한 번의 요청으로 3개 이상의 파일을 동시 수정하려 할 경우.\n- [행동]: 작업을 단계별로 분리하도록 제안. 각 단계마다 검증 후 다음으로 진행." |
+| TAG_NO_DELEGATION | "- [조건]: 복잡한 작업을 agent 위임 없이 단일 컨텍스트에서 처리하려 할 경우.\n- [행동]: '이 작업은 Agent로 병렬 처리하면 효율적입니다. 분리 가능한 sub-task를 제안하겠습니다'라고 안내." |
+| TAG_OPUS_SUBAGENT | "- [조건]: subagent에 opus 모델이 지정될 경우.\n- [행동]: 'agent-guidelines에 따라 subagent는 sonnet을 기본으로 사용합니다. opus가 필요한 이유를 설명해 주세요'라고 확인 요청." |
+| TAG_PARALLEL_CAP_BREACH | "- [조건]: 3개를 초과하는 agent를 동시에 dispatch하려 할 경우.\n- [행동]: '병렬 실행 상한은 3개입니다. wave로 나누어 실행하겠습니다'라고 안내 후 wave 분할." |
+| TAG_NO_CODEX | "- [조건]: 코드 변경 후 리뷰 단계에서 cross-review를 하지 않을 경우.\n- [행동]: 'Claude가 작성한 코드는 Codex로, Codex가 작성한 코드는 Claude로 교차 리뷰를 권장합니다'라고 안내." |
 
 Generate patches ONLY for tags that were actually detected in the session-anomaly data.
 
@@ -207,7 +221,8 @@ Return ONLY valid JSON. No prose, no markdown, no explanation outside the JSON.
       "ecosystemHealth": 70,
       "featureUtilization": 35,
       "automationLevel": 55,
-      "crossLayerHarmony": 80
+      "crossLayerHarmony": 80,
+      "agentDelegation": 70
     },
     "bonuses": [
       { "reason": "Token budget under 10%", "points": 8 },
@@ -281,6 +296,6 @@ Return ONLY valid JSON. No prose, no markdown, no explanation outside the JSON.
 
 ## Graceful Degradation
 
-If project data is absent (global-only scope), skip cross-layer analysis and adjust score weights (redistribute cross-layer weight across other dimensions). If skills-ecosystem data is missing, score ecosystem health as 0.
+If project data is absent (global-only scope), skip cross-layer analysis and adjust score weights (redistribute cross-layer weight across other dimensions). If skills-ecosystem data is missing, score ecosystem health as 0. If agent-usage data is null (script failed or not available), skip agent delegation scoring and redistribute its 20% weight evenly across other dimensions.
 
 IMPORTANT: Return ONLY the JSON object above. No text before or after.

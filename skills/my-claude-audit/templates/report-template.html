@@ -1605,6 +1605,24 @@
           dimFeatures: "Features",
           dimAutomation: "Automation",
           dimHarmony: "Harmony",
+          dimAgent: "Agent",
+          tabAgentUsage: "Agent Usage",
+          agentUsageTitle: "Agent Usage Analysis",
+          agentUsageDesc: "Analyzes how effectively you delegate work to agents and Codex CLI across all projects.",
+          agentTotalCalls: "Total Agent Calls",
+          agentCodexCalls: "Codex CLI Calls",
+          agentProjectsUsed: "Projects Using Agents",
+          agentParallelCompliance: "Parallel Cap Compliance",
+          agentModelDist: "Subagent Model Distribution",
+          agentByProject: "Agent Usage by Project",
+          agentViolations: "Guidelines Violations",
+          agentNoData: "No agent usage data available",
+          agentCalls: "Agent Calls",
+          codexCalls: "Codex Calls",
+          sessions: "Sessions",
+          violations: "Violations",
+          modelName: "Model",
+          count: "Count",
           analyzedBy: "Analyzed by",
           tabSession: "Session Analysis",
           tabPatches: "Instruction Patches",
@@ -1757,6 +1775,24 @@
           dimFeatures: "기능",
           dimAutomation: "자동화",
           dimHarmony: "조화",
+          dimAgent: "에이전트",
+          tabAgentUsage: "에이전트 활용",
+          agentUsageTitle: "에이전트 활용 분석",
+          agentUsageDesc: "전체 프로젝트에서 에이전트와 Codex CLI에 작업을 얼마나 효과적으로 위임하는지 분석합니다.",
+          agentTotalCalls: "총 에이전트 호출",
+          agentCodexCalls: "Codex CLI 호출",
+          agentProjectsUsed: "에이전트 사용 프로젝트",
+          agentParallelCompliance: "병렬 Cap 준수율",
+          agentModelDist: "서브에이전트 모델 분포",
+          agentByProject: "프로젝트별 에이전트 사용",
+          agentViolations: "가이드라인 위반",
+          agentNoData: "에이전트 사용 데이터 없음",
+          agentCalls: "에이전트 호출",
+          codexCalls: "Codex 호출",
+          sessions: "세션",
+          violations: "위반",
+          modelName: "모델",
+          count: "횟수",
           analyzedBy: "분석 모델",
           tabSession: "세션 분석",
           tabPatches: "지침 패치",
@@ -1926,6 +1962,7 @@
           featureUtilization: t("dimFeatures"),
           automationLevel: t("dimAutomation"),
           crossLayerHarmony: t("dimHarmony"),
+          agentDelegation: t("dimAgent"),
         };
 
         function polar(i, val) {
@@ -2315,6 +2352,7 @@
       <button class="tab-btn" data-tab="tab-skills" onclick="switchTab('tab-skills')">${t("tabSkills")}</button>
       <button class="tab-btn" data-tab="tab-config" onclick="switchTab('tab-config')">${t("tabConfig")}</button>
       <button class="tab-btn" data-tab="tab-tips" onclick="switchTab('tab-tips')">${t("tabTips")}</button>
+      <button class="tab-btn" data-tab="tab-agents" onclick="switchTab('tab-agents')">${t("tabAgentUsage")}</button>
       <button class="tab-btn" data-tab="tab-session" onclick="switchTab('tab-session')">${t("tabSession")}</button>
     </div>
 
@@ -2728,6 +2766,99 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Tab: Agent Usage -->
+    <div class="tab-panel" id="tab-agents">
+      <h2 class="section-heading">${t("agentUsageTitle")}</h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px">${t("agentUsageDesc")}</p>
+      ${data.agentUsage && data.agentUsage.globalStats ? (() => {
+        const ag = data.agentUsage.globalStats;
+        const projects = data.agentUsage.projects || [];
+        const models = ag.subagentModels || {};
+        const modelEntries = Object.entries(models).sort((a,b) => b[1] - a[1]);
+        const totalModelCalls = modelEntries.reduce((s, e) => s + e[1], 0);
+        const modelColors = {
+          'claude-sonnet-4-6': 'var(--blue)',
+          'claude-haiku-4-5-20251001': 'var(--green)',
+          'claude-opus-4-6': 'var(--purple)',
+          '<synthetic>': 'var(--text-muted)',
+          'unknown': 'var(--text-muted)',
+        };
+
+        return `
+        <div class="summary-stats" style="margin-bottom:24px">
+          <div class="stat-box"><div class="stat-value">${ag.totalAgentCalls}</div><div class="stat-label">${t("agentTotalCalls")}</div></div>
+          <div class="stat-box"><div class="stat-value">${ag.totalCodexCalls}</div><div class="stat-label">${t("agentCodexCalls")}</div></div>
+          <div class="stat-box"><div class="stat-value">${ag.totalProjects}</div><div class="stat-label">${t("agentProjectsUsed")}</div></div>
+          <div class="stat-box"><div class="stat-value">${ag.parallelCapCompliance}%</div><div class="stat-label">${t("agentParallelCompliance")}</div></div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-box">
+            <h3 class="chart-section">${t("agentModelDist")}</h3>
+            <div style="padding:16px">
+              ${modelEntries.map(([model, count]) => {
+                const pct = totalModelCalls > 0 ? (count / totalModelCalls * 100).toFixed(1) : 0;
+                const shortName = model.replace('claude-', '').replace('-20251001', '');
+                const color = modelColors[model] || 'var(--cyan)';
+                return `
+                <div style="margin-bottom:12px">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                    <span style="font-size:0.85rem">${esc(shortName)}</span>
+                    <span style="color:var(--text-muted);font-size:0.85rem">${count} (${pct}%)</span>
+                  </div>
+                  <div style="background:var(--bg-input);border-radius:4px;height:8px;overflow:hidden">
+                    <div style="background:${color};height:100%;width:${pct}%;border-radius:4px;transition:width 0.3s"></div>
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+          <div class="chart-box">
+            <h3 class="chart-section">${t("agentViolations")}</h3>
+            <div style="padding:16px">
+              ${ag.totalViolations > 0 ? Object.entries(ag.violationsByRule || {}).map(([rule, count]) => {
+                const ruleLabels = {
+                  'PARALLEL_CAP_EXCEEDED': 'Parallel cap exceeded (>3)',
+                  'SUBAGENT_OPUS_WITHOUT_ESCALATION': 'Opus used in subagent',
+                };
+                return `
+                <div class="card" style="margin-bottom:8px;border-left:3px solid var(--yellow)">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span>${esc(ruleLabels[rule] || rule)}</span>
+                    <span class="badge badge-warn">${count}x</span>
+                  </div>
+                </div>`;
+              }).join('') : `<p style="color:var(--green)">No violations detected</p>`}
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection" style="margin-top:24px">
+          <h3 class="section-heading">${t("agentByProject")}</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>${t("projectLabel")}</th>
+                <th>${t("agentCalls")}</th>
+                <th>${t("codexCalls")}</th>
+                <th>${t("sessions")}</th>
+                <th>${t("violations")}</th>
+              </tr></thead>
+              <tbody>
+                ${projects.sort((a,b) => b.totalAgentCalls - a.totalAgentCalls).map(p => `<tr>
+                  <td><code>${esc(p.project)}</code></td>
+                  <td>${p.totalAgentCalls}</td>
+                  <td>${p.totalCodexCalls}</td>
+                  <td>${p.sessionsWithAgents}</td>
+                  <td>${p.violations.length > 0 ? `<span class="badge badge-warn">${p.violations.length}</span>` : '<span style="color:var(--green)">0</span>'}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      })() : `<div class="card"><p>${t("agentNoData")}</p></div>`}
     </div>
 
     <!-- Tab: Session Analysis -->

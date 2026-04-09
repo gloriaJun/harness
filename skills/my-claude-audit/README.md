@@ -9,10 +9,11 @@ Comprehensive audit of your Claude Code configuration with an interactive HTML d
 - **Token Budget Analysis** — Per-file token usage visualization with bar charts, pie charts, and sortable tables. Tracks `@` reference chains and transitive token costs.
 - **Configuration Health** — Validates permissions, hooks, semantic conflicts, and structure. Detects overbroad permissions, missing hook scripts, and contradictory instructions.
 - **Skills Ecosystem** — Inventories all installed skills across marketplaces, detects overlaps, checks CSO (Claude Search Optimization) quality, and flags disabled-but-installed plugins.
+- **Agent Usage Analysis** — Tracks agent delegation patterns across all projects: model distribution, parallel execution compliance, Codex CLI usage, and per-project breakdown. Powered by a Python script for zero-token data extraction.
 - **Commands You Might Not Know** — Identifies Claude Code commands and features you're not using yet (e.g., `clear`, custom `/commands`, custom agents, auto-memory).
 - **Automation Opportunities** — Finds manual workflows that could be automated with hooks, agents, or custom commands.
 - **Cross-Layer Analysis** — Detects overlaps and gaps between global (`~/.claude/`) and project-level (`.claude/`) configurations.
-- **6-Dimension Scoring** — Rates your setup across Token Efficiency, Config Health, Ecosystem Health, Feature Utilization, Automation Level, and Cross-Layer Harmony.
+- **7-Dimension Scoring** — Rates your setup across Token Efficiency, Config Health, Ecosystem Health, Feature Utilization, Automation Level, Cross-Layer Harmony, and Agent Delegation.
 - **Multilingual** — Full Korean and English support with auto-detection and toggle.
 
 ## Usage
@@ -33,9 +34,11 @@ The skill will:
 /g-my-claude-audit
   → Scope Selection (Both / Global / Project)
   → Discovery (read settings.json, glob config files)
+  → Agent Usage Analysis (Python script, zero tokens)
   → Parallel Analysis
      ├── Token & Config Analyzer
-     └── Skills Ecosystem Analyzer
+     ├── Skills Ecosystem Analyzer
+     └── Session Anomaly Tagger (+ agent usage data)
   → Insights Aggregation (cross-layer, scoring, recommendations)
   → HTML Report Generation
   → Open in Browser
@@ -47,7 +50,8 @@ The skill will:
 |----------|---------------|
 | Token & Config Analyzer | Token budget per file, config health, permissions, hooks, MCP alignment |
 | Skills Ecosystem Analyzer | Skill inventory, overlap detection, CSO quality, plugin distribution |
-| Insights Aggregator | Cross-layer analysis, missed commands, automation opportunities, 6-dimension scoring |
+| Agent Usage Analyzer (Python) | Agent delegation patterns, model distribution, parallel cap compliance, Codex usage |
+| Insights Aggregator | Cross-layer analysis, missed commands, automation opportunities, 7-dimension scoring |
 
 ## Report Sections
 
@@ -59,6 +63,9 @@ Horizontal bar chart grouped by layer (Global/Project), context distribution pie
 
 ### Skills Ecosystem
 Grid of skill cards color-coded by marketplace, CSO quality indicators, overlap warnings, and plugin distribution chart.
+
+### Agent Usage
+Model distribution bar chart, parallel cap compliance, per-project agent call table with Codex usage tracking, and guidelines violation summary.
 
 ### Config Health
 Pass/fail checklist covering permissions, hooks, semantic conflicts, MCP alignment, and structure validation with fix commands.
