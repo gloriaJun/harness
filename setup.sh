@@ -359,6 +359,46 @@ register_rtk_hook() {
 }
 register_rtk_hook
 
+# --- 10. MCP servers: merge global definitions into ~/.claude.json ---
+echo ""
+echo "--- MCP servers: global definitions ---"
+merge_global_mcp() {
+    local mcp_def="$HARNESS_DIR/mcp/global.mcp.json"
+    local claude_json="$HOME/.claude.json"
+
+    if [ ! -f "$mcp_def" ]; then
+        skip "mcp/global.mcp.json not found"
+        return
+    fi
+
+    if [ ! -f "$claude_json" ]; then
+        skip "~/.claude.json not found"
+        return
+    fi
+
+    if ! command -v jq &>/dev/null; then
+        skip "jq not installed — skipping MCP merge"
+        return
+    fi
+
+    if $DRY_RUN; then
+        local servers
+        servers="$(jq -r 'keys[]' "$mcp_def" 2>/dev/null | tr '\n' ', ')"
+        dry "Merge MCP servers into ~/.claude.json: ${servers%, }"
+        return
+    fi
+
+    cp "$claude_json" "${claude_json}.backup.${TIMESTAMP}"
+
+    # Merge: global.mcp.json entries into ~/.claude.json mcpServers (upsert)
+    jq --slurpfile mcp "$mcp_def" '
+        .mcpServers = ((.mcpServers // {}) * $mcp[0])
+    ' "$claude_json" > "${claude_json}.tmp" && mv "${claude_json}.tmp" "$claude_json"
+
+    log "Merged global MCP servers into ~/.claude.json"
+}
+merge_global_mcp
+
 echo ""
 echo "=== Setup complete ==="
 if $DRY_RUN; then
