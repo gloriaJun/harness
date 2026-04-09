@@ -44,6 +44,36 @@ isolated sub-tasks), dispatch agents proactively without waiting for user instru
 When delegating work to Codex CLI, follow `@instructions/codex-delegation.md`
 for work sizing, sub-task splitting, and incomplete result handling.
 
+### Delegation Priority for Parallel Work
+
+When running parallel agents, prefer delegating to Codex first for eligible tasks
+to reduce Claude seat token consumption. Codex uses OpenAI API (separate billing).
+
+**Codex-first tasks** (delegate to Codex when running in parallel):
+- Code review (cross-review pattern)
+- Codebase exploration and pattern search
+- Test code generation
+- Mechanical refactoring (rename, move, boilerplate)
+- Documentation generation
+
+**Claude-only tasks** (keep on Claude agents):
+- Architecture design requiring deep reasoning
+- Multi-step debugging with nuanced judgment
+- Skill/agent authoring (Claude ecosystem context required)
+- Tasks requiring Claude-specific tool access (MCP, hooks)
+
+### Parallel Mix Strategy
+
+When dispatching 2-3 parallel agents, apply this priority:
+
+| Parallel count | Strategy |
+|---------------|----------|
+| 2 agents | 1 Codex + 1 Claude if one task is Codex-eligible |
+| 3 agents | Maximize Codex-eligible tasks first, remainder on Claude |
+
+This is a soft guideline — if all tasks require Claude-specific capabilities,
+use Claude agents for all.
+
 ## Parallel Execution Limit
 
 Each parallel agent runs in a separate context window and is billed independently.
