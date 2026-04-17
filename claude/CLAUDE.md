@@ -16,7 +16,12 @@
 @instructions/agent-guidelines.md
 
 ## On-Demand References (instructions/references/)
-- Session start: check `../_claude/work-plan/` for active plan matching current repo. If found, load `@instructions/references/work-plan.md` and resume.
+- Session start: check `../_claude/work-plan/` for plan folders matching current repo name.
+  - None found → proceed without loading work-plan instructions
+  - 1 found → ask whether to continue [folder-name] (Y/n)
+  - 2+ found → list folders with numbers, ask which to continue (0: none)
+  - Selected → load `@instructions/references/work-plan.md` and resume that plan
+  - Not selected (n / 0) → proceed without loading work-plan instructions
 - When creating or modifying definition files, load `@instructions/references/token-budget.md`
 - When creating or modifying skills, load `@instructions/references/skill-authoring.md`
 - When invoking Opus as advisor, load `@instructions/references/opus-advisor-pattern.md`
