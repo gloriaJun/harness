@@ -31,6 +31,7 @@ skills/          # Claude Code skills, symlinked to ~/.claude/skills/
   cleanup/       # Diagnose and clean up sessions, logs, caches
   troubleshoot/  # Unified troubleshooting: error analysis, debug, performance
   pre-commit-check/  # Auto self-review before commit
+  work-plan-close/   # Close completed work-plan: archive docs, delete artifacts, update _index.md
 templates/       # Settings templates (no secrets, reference only)
 plugins.json     # Plugin marketplace manifest (reference only)
 setup.sh         # Symlink setup script
