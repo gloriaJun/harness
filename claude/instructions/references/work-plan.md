@@ -8,6 +8,7 @@ Loaded on demand when an active work plan is detected for the current repo.
 Update `_state.json` **after each feature/step is committed** (not before commit).
 
 Triggers:
+
 - Feature implementation committed → update feature status + add history entry
 - Step completed (all features in step done) → update currentStep + completedSteps
 - Feature started but not finished → do NOT update (avoid partial state)
@@ -42,6 +43,44 @@ Work-plan paths are discovered by convention — no per-project configuration ne
 ```
 <workspace>/_claude/work-plan/<date>-<repo>-<task>/_state.json
 ```
+
+## README Index Convention
+
+Create or update `README.md` whenever a document is added to a work-plan folder.
+Purpose: allow future sessions to route to the right file without reading everything.
+
+### README.md Structure
+
+```markdown
+# <Project Name> — Work Plan Index
+
+**Project**: one-line description
+**Current phase**: current status
+
+## Documents
+
+### [`filename`](./filename)
+
+**When to read**: <what question or task requires this file>
+
+- key point 1
+- key point 2
+- key point 3
+```
+
+### Trigger Conditions
+
+- When the first document is created in a folder → create README at the same time
+- When a new document is added → append its entry to README
+- When a document changes significantly → update its bullet points in README
+
+### Writing Rules
+
+- "When to read" must be **task/question driven**, not a content summary
+- Keep bullet points to **3–5 per document** — enough to decide whether to open the file
+- Do not duplicate detailed content from the document itself
+
+---
 
 ## Example History Entry
 
