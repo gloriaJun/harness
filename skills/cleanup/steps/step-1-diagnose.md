@@ -1,6 +1,6 @@
 # Step 1: Diagnose
 
-Run disk usage analysis and display a summary table.
+Run disk usage analysis and display a summary table, then run the memory audit.
 
 ## Prerequisites
 
@@ -10,6 +10,8 @@ Read the following reference files before running diagnostics:
 
 ## Process
 
+### Part A: Disk Usage
+
 For each target in cleanup-targets.md, show:
 - **Category** name and ID
 - **File count** in the directory
@@ -18,6 +20,16 @@ For each target in cleanup-targets.md, show:
 - **Newest file** date
 
 Sort by size descending. Show grand total at the bottom.
+
+### Part B: Memory Audit
+
+Run the audit script:
+
+```bash
+bash ~/.claude/skills/cleanup/scripts/audit-memory.sh
+```
+
+Display issues grouped by type. Skip `OK` lines unless the user asks for a full list.
 
 ## Output Format
 
@@ -43,6 +55,15 @@ Codex CLI (~/.codex/)
   ...
 
 Total: 952.3M across 6 categories
+
+=== Memory Audit (M1) ===
+
+  ORPHANED     GitHub-harness          → /Users/.../GitHub/harness (경로 없음)
+  ORPHANED     GitHubLine-one          → /Users/.../GitHubLine/one (경로 없음)
+  BROKEN_LINK  GitHubPrivate-online-party-game  → user_github_multi_account.md (파일 없음)
+  DUPLICATE    GitHub-harness          → same repo as GitHubPrivate-harness
+
+  이슈 없음 시: "✓ 메모리 이상 없음"
 ```
 
-After displaying the table, proceed to Step 2.
+After displaying both sections, proceed to Step 2.

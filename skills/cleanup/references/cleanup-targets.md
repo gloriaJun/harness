@@ -27,6 +27,12 @@
 | X5 | Shell snapshots | `shell_snapshots/` | Shell state snapshots |
 | X6 | Database | `sqlite/` | SQLite data |
 
+## Memory (`~/.claude/projects/*/memory/`)
+
+| ID | Category | Path | Description |
+|----|----------|------|-------------|
+| M1 | Memory audit | `projects/*/memory/` | Auto-memory files — audit for orphaned project paths, broken MEMORY.md indexes, and duplicate entries across old/renamed project dirs. Does NOT delete content blindly; presents issues for user confirmation. |
+
 ## Temp files (`/tmp/`)
 
 | ID | Category | Pattern | Description |
