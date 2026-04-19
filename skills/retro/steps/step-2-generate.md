@@ -9,7 +9,7 @@ Draft the retrospective note using the context collected in Step 1.
 status: inbox
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-title: [Session Retro] <task-name>
+title: "[Session Retro] <task-name>"
 tags:
   - retro
   - <project>
