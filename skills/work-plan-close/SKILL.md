@@ -31,7 +31,10 @@ flowchart TD
     E -- No / Edit --> C
     E -- Yes --> F["Step 4: Execute"]
     F --> G["Step 5: Update _index.md"]
-    G --> H(["Done"])
+    G --> H{"g-retro\ninstalled?"}
+    H -- No --> Z(["Done"])
+    H -- Yes --> I["Step 6: Retro (optional)"]
+    I --> Z
 ```
 
 ---
@@ -168,6 +171,21 @@ work-plan 폴더 자체도 비워진 후 삭제한다.
 - PRD: [[PRD-sentry-insight]]
 - Brainstorm: [[brainstorm-sentry-insight]]
 ```
+
+---
+
+## Step 6: Retro (Optional)
+
+Check whether the g-retro skill is installed:
+
+1. Glob `~/.claude/skills/retro/SKILL.md`
+2. **Not found** → skip silently, close is complete
+3. **Found** → ask the user:
+   ```
+   Write a session retro? (y/n)
+   ```
+   - `n` → skip
+   - `y` → invoke the `g-retro` skill, passing the selected work-plan folder path as context
 
 ---
 
