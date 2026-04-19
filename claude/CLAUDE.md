@@ -5,6 +5,7 @@
 - Never modify code without user confirmation
 - Provide rationale and explanation for every proposed change
 - Review first, then proceed — no autonomous code modifications
+- When requirements are ambiguous or confirmation is needed, ask the user — never assume
 
 ## Recommended Model
 - Default CLI model: **Sonnet** (cost-efficient orchestrator)
