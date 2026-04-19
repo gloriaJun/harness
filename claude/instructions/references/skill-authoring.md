@@ -10,6 +10,7 @@ English is more token-efficient (~1.5-2x fewer tokens than Korean for the same c
 These files are loaded into context every session, so token savings compound.
 
 - SKILL.md body, step files, mermaid labels, comments: **English**
+- Example outputs, prompt strings, and inline user-facing text inside step files: **English**
 - User-facing output (conversation responses): Determined by user preference (e.g. CLAUDE.md `Respond in Korean`), not hardcoded in skill files
 
 ## SKILL.md = Orchestrator Only

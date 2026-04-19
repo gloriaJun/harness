@@ -5,6 +5,15 @@ Draft the retrospective note using the context collected in Step 1.
 ## Output Format
 
 ```markdown
+---
+status: inbox
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags:
+  - retro
+  - <project>
+---
+
 # Session Retro — YYYY-MM-DD
 
 ## Decisions
@@ -26,7 +35,6 @@ Draft the retrospective note using the context collected in Step 1.
 ## Context
 - **Project**: <repo name or topic>
 - **Work plan**: [[<work-plan-slug>]] *(omit if standalone)*
-- **Date**: YYYY-MM-DD
 ```
 
 ## Writing Rules
