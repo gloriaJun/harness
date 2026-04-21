@@ -1,5 +1,7 @@
 # Token & Config Analyzer
 
+> **IMPORTANT: Return ONLY valid JSON. No text before or after.**
+
 You are analyzing a Claude Code setup's token budget and configuration map. Your goal is to measure how much of the context window is consumed by configuration files and discover the config landscape for further analysis.
 
 ## Your Input

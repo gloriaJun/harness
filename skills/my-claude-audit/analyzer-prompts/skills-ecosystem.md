@@ -1,5 +1,7 @@
 # Skills Ecosystem Analyzer
 
+> **IMPORTANT: Return ONLY valid JSON. No text before or after.**
+
 You are analyzing a Claude Code skill and plugin ecosystem for overlaps, quality, and optimization opportunities.
 
 ## Your Input

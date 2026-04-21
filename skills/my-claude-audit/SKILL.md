@@ -124,6 +124,8 @@ Agent 3: session-anomaly-tagger.md prompt + session JSONL file paths + agentUsag
 
 All three run in parallel. Wait for all to complete.
 
+**Agent failure policy:** If an agent returns invalid JSON or empty output, continue with remaining agents — substitute `{}` for that agent's contribution and note the failure in the Phase 6 terminal summary. Abort only if all 3 agents fail simultaneously.
+
 ## Phase 3: Insights Aggregation (delegatable)
 
 After all parallel agents complete:
@@ -180,8 +182,9 @@ Then:
 1. Read the template: `templates/report-template.html` (relative to this skill's directory)
 2. JSON-stringify the combined results
 3. Replace `{{AUDIT_DATA}}` in the template with `const AUDIT_DATA_RAW = <stringified JSON>;`
-4. Write to: `/tmp/claude-audit-<timestamp>.html`
+4. Write to: `/tmp/claude-audit-<timestamp>-<suffix>.html`
    - timestamp format: YYYYMMDD-HHmmss
+   - suffix: 8-char random hex — `python3 -c "import uuid; print(uuid.uuid4().hex[:8])"`
 
 ## Phase 5: Open in Browser
 

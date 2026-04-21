@@ -54,13 +54,18 @@ def decode_project_path(encoded):
     Example: -Users-al03155147-Documents-GitHubLine-one -> GitHubLine/one
     """
     parts = encoded.lstrip("-").split("-")
-    # Find 'Documents' as anchor, take everything after it
-    try:
-        idx = parts.index("Documents")
-        return "/".join(parts[idx + 1:])
-    except ValueError:
-        # Fallback: last 2 segments
-        return "/".join(parts[-2:]) if len(parts) >= 2 else encoded
+    # Try common path anchors; take everything after the anchor
+    for anchor in ("Documents", "projects", "workspace", "github", "src"):
+        try:
+            idx = parts.index(anchor)
+            result = "/".join(parts[idx + 1:])
+            if result:
+                return result
+        except ValueError:
+            continue
+    # Fallback: last 4 segments for more context
+    n = min(4, len(parts))
+    return "/".join(parts[-n:]) if n > 0 else encoded
 
 
 def get_session_files(project_dir, max_sessions, cutoff_ts):
@@ -110,6 +115,7 @@ def analyze_session(session_file, project_dir):
         "totalAgentCalls": 0,
         "totalTurns": 0,
         "timestamp": None,
+        "warnings": [],
     }
 
     try:
@@ -183,8 +189,12 @@ def analyze_session(session_file, project_dir):
                         "timestamp": d.get("timestamp"),
                     })
 
-    except (IOError, json.JSONDecodeError):
-        pass
+    except IOError as e:
+        result["warnings"].append({
+            "type": "session_read_error",
+            "file": session_file,
+            "error": str(e),
+        })
 
     result["totalAgentCalls"] = len(result["agentCalls"])
 
@@ -242,11 +252,13 @@ def analyze_project(project_dir, max_sessions, cutoff_ts):
     all_subagent_models = Counter()
     all_parent_models = Counter()
     all_violations = []
+    all_warnings = []
     parallel_batches_total = 0
     max_parallel = 0
 
     for sf in session_files:
         sr = analyze_session(sf, project_dir)
+        all_warnings.extend(sr.get("warnings", []))
         if sr["totalAgentCalls"] > 0 or sr["codexUsage"]:
             sessions.append({
                 "sessionId": sr["sessionId"][:12] + "...",
@@ -284,6 +296,7 @@ def analyze_project(project_dir, max_sessions, cutoff_ts):
         "subagentModels": dict(all_subagent_models),
         "parentModels": dict(all_parent_models),
         "violations": all_violations,
+        "warnings": all_warnings,
         "sessions": sessions,
     }
 

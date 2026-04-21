@@ -29,8 +29,14 @@ invoke_tool() {
             timeout "$t" gemini < "$file" 2>/dev/null
             ;;
         openai)
-            timeout "$t" openai api chat.completions.create \
-                -m gpt-4o -M "$(cat "$file")" 2>/dev/null
+            local raw
+            raw=$(timeout "$t" openai api chat.completions.create \
+                -m gpt-4o -g user "$(cat "$file")" 2>/dev/null) || true
+            if [ -n "$raw" ]; then
+                echo "$raw" | python3 -c \
+                    "import json,sys; d=json.load(sys.stdin); print(d['choices'][0]['message']['content'])" \
+                    2>/dev/null
+            fi
             ;;
         codex)
             timeout "$t" codex "$(cat "$file")" 2>/dev/null
@@ -47,6 +53,7 @@ invoke_tool() {
                 echo "$result"
                 return 0
             fi
+            echo "Error: Both stdin and --prompt methods failed for '$tool'" >&2
             return 1
             ;;
     esac
@@ -58,4 +65,5 @@ if [ -n "$RESULT" ]; then
     exit 0
 fi
 
+echo "Error: '$CLI_TOOL' returned empty output. Ensure the tool is installed and configured correctly." >&2
 exit 1
