@@ -1,0 +1,113 @@
+{
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git remote:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(gh api:*)",
+      "Bash(gh auth:*)",
+      "Bash(pnpm nx:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(brew install:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(rtk *)",
+      "Bash(* --version)",
+      "Bash(* --help *)",
+      "mcp__chrome-devtools",
+      "WebSearch",
+      "WebFetch(*)",
+      "Read(/Users/al03155147/.claude/skills/**)",
+      "Read(/Users/al03155147/Documents/obsidian-vault/02_Inbox/**)",
+      "Read(/Users/al03155147/Documents/obsidian-vault/10_knowledge/**)",
+      "Read(/Users/al03155147/Documents/obsidian-vault/20_archive/**)",
+      "Read(/Users/al03155147/Documents/obsidian-vault/90_system/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
+    "defaultMode": "plan",
+    "additionalDirectories": [
+      "/Users/al03155147/Documents/obsidian-vault/04_Wiki",
+      "/Users/al03155147/Documents/obsidian-vault/02_Plans"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codex login --with-api-key <<< \"$OPENAI_CODEX_API_KEY\" 2>/dev/null || true",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/al03155147/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git commit:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'STOP: Before committing, you MUST run the pre-commit-check skill to review all staged changes. If you have already completed the pre-commit-check review for these changes, you may proceed.'"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y @owloops/claude-powerline@latest --style=powerline --theme=tokyo-night"
+  },
+  "enabledPlugins": {
+    "plannotator@plannotator": true,
+    "codex@openai-codex": true,
+    "visualize@careerhackeralex": true,
+    "pr-workflow@my-work-skills": false
+  },
+  "extraKnownMarketplaces": {
+    "plannotator": {
+      "source": {
+        "source": "github",
+        "repo": "backnotprop/plannotator"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    },
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "careerhackeralex": {
+      "source": {
+        "source": "github",
+        "repo": "careerhackeralex/visualize"
+      }
+    }
+  }
+}

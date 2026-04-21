@@ -221,6 +221,11 @@ if [ -d "$HARNESS_DIR/claude/instructions" ]; then
     safe_link "$HARNESS_DIR/claude/instructions" "$CLAUDE_HOME/instructions"
 fi
 
+# --- 1c. Claude Code: settings.json (source of truth in harness) ---
+if [ -f "$HARNESS_DIR/claude/settings.json" ]; then
+    safe_link "$HARNESS_DIR/claude/settings.json" "$CLAUDE_HOME/settings.json"
+fi
+
 # --- 2. Claude Code: hooks ---
 echo ""
 echo "--- Claude Code: hooks ---"
