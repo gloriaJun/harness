@@ -39,7 +39,7 @@ invoke_tool() {
             fi
             ;;
         codex)
-            timeout "$t" codex "$(cat "$file")" 2>/dev/null
+            timeout "$t" codex task --effort low "$(cat "$file")" 2>/dev/null
             ;;
         *)
             local result

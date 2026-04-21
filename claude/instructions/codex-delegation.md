@@ -1,11 +1,19 @@
 # Codex Delegation Guidelines
 
-Common rules for delegating work to Codex CLI (`codex exec`).
+Common rules for delegating work to Codex CLI (`codex task`).
 Applies to all contexts: task-process features, ad-hoc tasks, skill-internal delegation.
+
+## Reasoning Effort Policy
+
+Agent 위임 시 기본값은 `--effort low`.
+
+- Tier 3 Worker (Codex) 역할에 부합: bounded, scoped work (리뷰, 탐색, 기계적 리팩토링)
+- 직접 CLI 호출은 `~/.codex/config.toml` 전역 설정 유지 (`medium`)
+- 예외적으로 deep reasoning이 필요한 위임이면 call site에서 `--effort medium`으로 override
 
 ## Work Sizing
 
-A single `codex exec` call should be scoped to a **focused, completable unit**.
+A single `codex task --effort low` call should be scoped to a **focused, completable unit**.
 
 | Metric | Guideline | Rationale |
 |--------|-----------|-----------|
@@ -18,7 +26,7 @@ is simpler than a 100-line algorithm change.
 
 ## Pre-Delegation Assessment
 
-Before calling `codex exec`, estimate the work size:
+Before calling `codex task --effort low`, estimate the work size:
 
 1. **List affected files** from the spec or feature description.
 2. **Estimate change volume** — rough line count per file.
@@ -26,7 +34,7 @@ Before calling `codex exec`, estimate the work size:
 
 | Assessment result | Action |
 |-------------------|--------|
-| Within guidelines | Delegate as a single `codex exec` call |
+| Within guidelines | Delegate as a single `codex task --effort low` call |
 | Exceeds guidelines but mechanical | Acceptable as single call — note the exception |
 | Exceeds guidelines and complex | Split into sub-tasks before delegating |
 
@@ -43,8 +51,8 @@ When a unit of work exceeds Codex's effective scope, split it before delegating.
 ### Execution Pattern
 
 ```
-Sub-task 1: codex exec "<prompt-1>" → verify result
-Sub-task 2: codex exec "<prompt-2>" → verify result
+Sub-task 1: codex task --effort low "<prompt-1>" → verify result
+Sub-task 2: codex task --effort low "<prompt-2>" → verify result
 ...
 ```
 

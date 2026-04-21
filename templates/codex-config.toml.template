@@ -2,6 +2,11 @@ model = "gpt-5.3-codex"
 model_provider = "openai"
 personality = "pragmatic"
 
+# reasoning effort: "none" | "minimal" | "low" | "medium" | "high" | "xhigh"
+# "medium" 이상은 reasoning 모델에서 수 분~1시간 소요 가능
+# 직접 CLI 기준값: "medium" | Agent 위임 시 call-site에서 --effort low 플래그로 override
+model_reasoning_effort = "medium"
+
 # Add custom model providers per-machine:
 # [model_providers.custom]
 # name     = "Custom Provider"

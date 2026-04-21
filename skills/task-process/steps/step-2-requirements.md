@@ -38,7 +38,7 @@ One of the following (check `_state.json` artifacts):
    - If revision requested: re-invoke agent, do NOT advance step.
 4. **Codex cross-review**: After user approval, request Codex review.
    - Via codex-plugin-cc: `/codex:rescue "Review this PRD for missing requirements, ambiguity, and feasibility: <path>"`
-   - Via Codex CLI: `codex exec --read <PRD-path> "Review this PRD: identify missing requirements, ambiguous items, and feasibility concerns"`
+   - Via Codex CLI: `codex task --effort low --read <PRD-path> "Review this PRD: identify missing requirements, ambiguous items, and feasibility concerns"`
    - If Codex is not available (Bash restricted or CLI missing):
      - Invoke `code-reviewer` agent (model: sonnet) for cross-review instead.
      - Note the fallback in `_state.json` history.

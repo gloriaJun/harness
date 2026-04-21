@@ -43,7 +43,7 @@ From `_state.json` artifacts:
 2. **Codex cross-review**: After user approval, request Codex review.
    - Focus: missing features, incorrect scoping (too large/small for single session), dependency ordering issues.
    - Via codex-plugin-cc: `/codex:rescue "Review this feature breakdown for missing items, scoping issues, and dependency order: <path>"`
-   - Via Codex CLI: `codex exec --read <features-path> "Review this feature breakdown: identify missing features, items too large for a single session, and dependency ordering issues"`
+   - Via Codex CLI: `codex task --effort low --read <features-path> "Review this feature breakdown: identify missing features, items too large for a single session, and dependency ordering issues"`
    - If Codex is not available (Bash restricted or CLI missing):
      - Invoke `code-reviewer` agent (model: sonnet) for cross-review instead.
      - Note the fallback in `_state.json` history.

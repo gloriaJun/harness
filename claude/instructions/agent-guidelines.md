@@ -6,12 +6,12 @@ Common rules for all agent dispatches — applies to skills and general conversa
 
 4-tier 모델 계층으로 역할을 분리한다.
 
-| Tier | Model | Role | 원칙 |
-|------|-------|------|------|
-| 1 | Opus | Strategic Advisor | 판단/방향만 제시, 실행 금지 |
-| 2 | Sonnet | Main Orchestrator + Executor | 조율, 라우팅, 실제 작업 수행 |
-| 3 | Haiku | Lightweight Worker | 문서 편집, 요약, 포맷 변환 |
-| 3 | Codex | Code-centric Worker | 리뷰, 탐색, 테스트, 리팩토링 |
+| Tier | Model | Role | 원칙 | Reasoning Effort |
+|------|-------|------|------|-----------------|
+| 1 | Opus | Strategic Advisor | 판단/방향만 제시, 실행 금지 | 해당 없음 |
+| 2 | Sonnet | Main Orchestrator + Executor | 조율, 라우팅, 실제 작업 수행 | N/A (Claude) |
+| 3 | Haiku | Lightweight Worker | 문서 편집, 요약, 포맷 변환 | N/A (Claude) |
+| 3 | Codex | Code-centric Worker | 리뷰, 탐색, 테스트, 리팩토링 | `--effort low` (위임 시 기본값; 직접 CLI는 config 기본값) |
 
 Fallback 체인: Codex → Sonnet, Haiku → Sonnet, Opus declined → Sonnet
 
