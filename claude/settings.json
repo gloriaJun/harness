@@ -22,7 +22,7 @@
       "Bash(brew upgrade:*)",
       "Bash(rtk *)",
       "Bash(plannotator:*)",
-      "plannotator:*",
+      "Plannotator:*",
       "Codex:*",
       "Bash(grep -E:*)",
       "Bash(curl -s http://localhost:*)",
