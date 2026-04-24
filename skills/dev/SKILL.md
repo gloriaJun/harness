@@ -4,7 +4,7 @@ description: >
   Unified development workflow skill. Triggered by /dev or sub-commands:
   /dev idea, /dev plan, /dev design, /dev build, /dev complete,
   /dev test, /dev refactor, /dev review, /dev troubleshoot,
-  /dev retro, /dev wiki.
+  /dev retro, /dev wiki, /dev help.
   Also triggers on: code refactoring requests ("리팩토링 해줘", "코드 정리해줘",
   "클린 아키텍처 적용해줘", "중복 코드 정리해줘", "타입 추가해줘", "구드 냄새 제거해줘",
   "성능 개선해줘", "refactor this", "clean up this code"),
@@ -84,6 +84,32 @@ Parse the first word after `/dev`. Load ONLY the matching file.
 | `refactor`, "리팩토링 해줘", "코드 정리해줘", etc. | `Read("tools/refactor/SKILL.md")` |
 | `troubleshoot`, error logs, stack traces, "에러 고쳐줘", etc. | `Read("tools/troubleshoot/SKILL.md")` |
 | `review` | `steps/review.md` |
+| `help` | inline | 사용 가능한 서브커맨드 목록과 용도 출력 |
+
+### help 출력 형식
+
+`/dev help` 호출 시 다음을 직접 출력한다 (별도 파일 로드 없음):
+
+```
+/dev — Development workflow commands
+
+Planning lifecycle (devlog-tracked):
+  idea          vague concept → brainstorm.md
+  plan          requirements → PRD
+  design        PRD → TRD
+  build         implement features (1 feature/session)
+  complete      wrap-up + handoff to retro
+  retro         retrospective → vault note
+  wiki          process notes → vault + devlog cleanup
+
+Utility tools (no devlog required):
+  test          test code generation
+  refactor      code cleanup / restructure
+  troubleshoot  debug errors and stack traces
+  review        code review workflow
+
+  help          show this message
+```
 
 ---
 

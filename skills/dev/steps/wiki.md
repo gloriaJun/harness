@@ -41,6 +41,13 @@ After process note is saved, clean up the devlog directory:
    ```
 3. Execute the chosen action. Delete only after explicit confirmation.
 
+4. Update `_index.md`:
+   - Read `<devlogs-root>/_index.md`
+   - Find the row matching the current task directory name
+   - If deleted or archived → remove the row entirely
+   - If kept → update "상태" column to `완료`
+   - Update frontmatter `updated:` to today's date
+
 ## State Update
 
 1. Update `_state.json` (if not deleting):

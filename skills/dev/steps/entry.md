@@ -65,7 +65,12 @@ After entry point is confirmed:
    - `entryPoint`: selected entry
    - `completedSteps`: `[0]`
    - All other fields at defaults
-4. Load the step file for the selected entry point
+4. Update `_index.md`:
+   - Read `<devlogs-root>/_index.md`
+   - Append row under `## Active Tasks` table:
+     `` | `YYYY-MM-DD-<repo>-<task-name>/` | <task-name> | Step N (<step-name>) | 진행 중 | ``
+   - Update frontmatter `updated:` to today's date
+5. Load the step file for the selected entry point
 
 ## External Document Handling
 

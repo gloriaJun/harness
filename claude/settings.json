@@ -47,9 +47,9 @@
     "defaultMode": "plan",
     "additionalDirectories": [
       "/Users/al03155147/Documents/obsidian-vault/.claude",
-      "/Users/al03155147/Documents/obsidian-vault/02_Inbox",
-      "/Users/al03155147/Documents/obsidian-vault/04_Wiki",
-      "/Users/al03155147/Documents/obsidian-vault/02_Plans"
+      "/Users/al03155147/Documents/obsidian-vault/02_Ideas",
+      "/Users/al03155147/Documents/obsidian-vault/04_Logs",
+      "/Users/al03155147/Documents/obsidian-vault/02_Notes"
     ]
   },
   "hooks": {
@@ -119,5 +119,7 @@
         "repo": "careerhackeralex/visualize"
       }
     }
-  }
+  },
+  "theme": "dark-daltonized",
+  "autoCompactEnabled": false
 }
