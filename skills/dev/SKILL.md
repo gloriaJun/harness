@@ -2,7 +2,7 @@
 name: dev
 description: >
   Unified development workflow skill. Triggered by /dev or sub-commands:
-  /dev idea, /dev plan, /dev design, /dev build, /dev complete,
+  /dev idea, /dev plan, /dev design, /dev breakdown, /dev build, /dev complete,
   /dev test, /dev refactor, /dev review, /dev troubleshoot,
   /dev retro, /dev wiki, /dev help, /dev status.
   Also triggers on: code refactoring requests ("리팩토링 해줘", "코드 정리해줘",
@@ -72,10 +72,11 @@ Parse the first word after `/dev`. Load ONLY the matching file.
 | `idea` | `steps/idea.md` | Ideation → brainstorm.md |
 | `plan` | `steps/plan.md` | Requirements → PRD |
 | `design` | `steps/design.md` | Architecture → TRD |
+| `breakdown` | `steps/breakdown.md` | Feature decomposition → features.md |
 | `build` | `steps/build.md` | Feature implementation (1 feature/session) |
 | `complete` | `steps/complete.md` | Wrap-up, insight, summary |
 
-### Utility Tools (inline, no devlog required)
+### Utility Tools (devlog optional)
 
 | Sub-command / Natural language trigger | Tool file |
 |----------------------------------------|-----------|
@@ -99,6 +100,7 @@ Planning lifecycle (devlog-tracked):
   idea          vague concept → brainstorm.md
   plan          requirements → PRD
   design        PRD → TRD
+  breakdown     TRD → feature breakdown
   build         implement features (1 feature/session)
   complete      wrap-up + summary
 
@@ -141,6 +143,11 @@ Resolve the devlogs root from `cwd`:
 | neither | ask the user |
 
 Task directory: `<devlogs-root>/YYYY-MM-DD-<repo>-<task-name>/`
+
+**Current repo name** (used to match devlog tasks to the active project):
+```bash
+basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)
+```
 
 ---
 

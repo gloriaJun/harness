@@ -1,17 +1,12 @@
 # Session Handoff
 
-Follow these steps at the end of every `/dev` sub-command to ensure cross-session continuity.
+Follow these steps at the end of idea, plan, design, and breakdown.
+Build and complete handle their own handoff inline.
 
 ## 1. Persist State
 
-Update `_state.json` in the task directory:
-- Set `currentStep` to the next step number
-- Append the current step to `completedSteps`
-- Register any new artifact paths under `artifacts`
-- Append to `history`:
-  ```json
-  { "step": N, "action": "description of what was done", "timestamp": "ISO 8601" }
-  ```
+Update `_state.json` per the values declared in the step file's "State Update" section.
+Follow `schemas/state.md` update mechanics.
 
 ## 2. Update `_index.md`
 
@@ -19,7 +14,7 @@ Update `_state.json` in the task directory:
 - Find the row matching the current task directory name
 - Update the "current step" column to `Step N (<next-step-name>)`
 - Update frontmatter `updated:` to today's date
-- If the row is not found (task created before this change): append a new row as fallback
+- If the row is not found: append a new row as fallback
 
 Step name mapping:
 
@@ -36,6 +31,8 @@ Step name mapping:
 
 ## 3. Show Completion Message
 
+The next sub-command is declared in the step file's "Next sub-command:" line.
+
 ```
 ✅ [<sub-command>] complete — <artifact(s)> saved
 
@@ -47,6 +44,6 @@ Start a new session and run `/dev` — it will detect this task and resume autom
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 3. Do Not Continue
+## 4. Do Not Continue
 
-After showing the handoff message, stop. Do not proceed to the next step in the same session unless the user explicitly asks to continue.
+After showing the handoff message, stop. Do not proceed to the next step in the same session unless the user explicitly asks.

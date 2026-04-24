@@ -7,21 +7,30 @@ Works with or without a devlog.
 
 ## Entry Check
 
-1. Detect devlog context:
-   - Resolve devlogs root from cwd (main SKILL.md Devlog Path Detection rules)
-   - Scan for task directories containing `_state.json` with `currentStep NOT IN completedSteps`
-   - Prioritize entries whose `taskName` matches the current repo
-   - If a matching active devlog is found: **lifecycle mode**
-   - If not found: **standalone mode**
+**Resolve devlogs root** from cwd:
 
-2. If lifecycle mode:
-   - Ask: "retrospective를 작성할까요? (y/n)"
-     - `n` → stop. Show: "Skipped. Run `/dev retro` anytime to write it later."
-     - `y` → proceed
-   - Read `_state.json`: extract `taskName`, `history`, `artifacts`
-   - If `currentStep < 6`: warn "complete step not yet done" — do not block
+| cwd contains | devlogs root |
+|---|---|
+| `GitHubWork` | `~/Documents/GitHubWork/_claude/devlogs/` |
+| `GitHubPrivate` | `~/Documents/GitHubPrivate/_claude/devlogs/` |
+| neither | ask the user |
 
-3. If standalone mode: proceed directly without asking.
+**Scan for candidate tasks** (either condition qualifies):
+- Post-complete, retro not started: `currentStep == 6 AND 6 IN completedSteps`
+- Retro in progress: `currentStep == 7 AND 7 NOT IN completedSteps`
+
+Prefer tasks whose `taskName` matches: `basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)`
+
+If multiple candidates: list them and ask user to choose.
+
+**Lifecycle mode** (candidate task found):
+1. Read `_state.json`: extract `taskName`, `history`, `artifacts`
+2. If `currentStep < 6`: warn "complete step not yet done" — do not block
+3. Ask: "Write a retrospective for **<taskName>**? (y/n)"
+   - `n` → stop. Show: "Skipped. Run `/dev retro` anytime to write it later."
+   - `y` → proceed
+
+**Standalone mode** (no candidate task found): proceed directly without asking.
 
 ---
 
@@ -51,14 +60,19 @@ Delegate to `vault-retro` skill inline:
 
 ## State Update (lifecycle mode only)
 
-After vault-retro completes:
-
 1. Update `_state.json`:
-   - Set `currentStep` to `7`
-   - Append `6` to `completedSteps`
-   - Register retro file path in `artifacts.retro`
+   - `currentStep` → 7, append 6 to `completedSteps`
+   - `artifacts.retro` ← retro file path
    - Append to `history`: `{ "step": 6, "action": "retro saved", "timestamp": "ISO 8601" }`
-2. Follow `steps/_handoff.md` rules for `_index.md` update and completion message.
+
+2. Update `_index.md`:
+   - Find the row matching the task directory in `<devlogs-root>/_index.md`
+   - Update step column to `Step 7 (retro)`
+   - Update frontmatter `updated:` to today's date
+
+---
+
+## Completion
 
 ```
 ✅ [retro] complete — retrospect note saved

@@ -40,57 +40,60 @@ Before cross-review, clean up the implementation:
 
 ### Step B: Cross-Review
 
-After implementation, update `features[i].status` to `"review"`:
+After implementation, update `features[i].status` to `"review"`.
 
 | Executor | Reviewer | Method |
 |----------|----------|--------|
-| Claude | Codex | Invoke `code-reviewer` agent -> delegates to `/codex:review` |
-| Codex | Claude | Invoke `code-reviewer` agent -> reviews with Claude |
+| Claude | Codex | Invoke `code-reviewer` agent → delegates to `/codex:review` |
+| Codex | Claude | Invoke `code-reviewer` agent → reviews with Claude |
 
 Set `features[i].reviewer` accordingly.
 
-#### Parallel Review (when frontend changes exist)
+#### Parallel Review (frontend changes exist)
 
-If the feature involves frontend changes, invoke both reviewers **in parallel**:
-
-1. Dispatch `code-reviewer` and `frontend-reviewer` simultaneously (single message, 2 Agent tool calls).
-2. Apply action markers per `agent-guidelines.md` (parallel dispatch format).
-3. Wait for both to complete, then aggregate findings.
+Dispatch `code-reviewer` and `frontend-reviewer` simultaneously (single message, 2 Agent tool calls).
+Apply action markers per `agent-guidelines.md`. Wait for both, then aggregate findings.
 
 #### Sequential Review (no frontend changes)
 
-If no frontend changes, invoke only `code-reviewer`.
+Invoke only `code-reviewer`.
 
 ### Step C: Review Resolution
 
 1. Present review findings to the user.
 2. If changes requested: fix and re-review (max 2 iterations).
 3. Update `features[i].status` to `"done"`.
-4. Log to `history` in `_state.json`.
 
-## Feature Complete
-
-After the feature is marked `"done"`, display:
-
-```
-✅ feature-XX complete
-
-Remaining: N feature(s) pending
-Next: `/dev build` in a new session to continue, or `/dev complete` if all done.
-```
-
-Do NOT automatically start the next feature. This session ends here.
-
-## State Update (on completion)
-
-1. Verify `features[i].status` is `"done"`
-2. If all features are done:
-   - Set `currentStep` to `6`
-   - Append `5` to `completedSteps`
-3. Log to `history`
-
-Paths: devlogs task subdirectory for `_state.json`.
+---
 
 ## Session Handoff
 
-Read `steps/_handoff.md` and follow the handoff instructions for this step.
+### State Update
+
+- `features[i].status` ← `"done"`, `features[i].executor/reviewer` ← from selection
+- If all features done: `currentStep` → 6, append 5 to `completedSteps`
+- Append to `history`
+
+### _index.md Update
+
+- Find the row matching the current task directory in `<devlogs-root>/_index.md`
+- If more features pending: update step column to `Step 5 (build — N/M done)`
+- If all done: update step column to `Step 6 (complete)`
+- Update frontmatter `updated:` to today's date
+
+### Completion Message
+
+```
+✅ feature-<XX> complete
+
+Remaining: N feature(s) pending
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next:  /dev build      (more features remain)
+  OR
+Next:  /dev complete   (all features done)
+Start a new session and run `/dev` — it will detect this task automatically.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Do NOT automatically start the next feature. Stop here.

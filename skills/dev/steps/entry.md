@@ -10,9 +10,11 @@ Before showing the entry menu, check for an existing task:
    - Neither → ask the user which workspace to use
 
 2. Scan for directories containing `_state.json` under the devlogs path.
-   - Filter for entries where `currentStep` is NOT in `completedSteps` (step pending = active)
-   - Step mapping: 6=complete, 7=retro, 8=wiki — tasks at any of these steps are still active
-   - Prioritize entries whose `taskName` matches the current repo name
+   - Active tasks: `currentStep NOT IN completedSteps`
+   - Note: a task at currentStep=6 with 6 in completedSteps is considered done (core lifecycle
+     complete; retro/wiki are optional tools that can be run independently at any time).
+   - Prioritize entries whose `taskName` matches the current repo name.
+     Current repo name: `basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)`
 
 3. If incomplete tasks found:
    ```
@@ -36,22 +38,24 @@ Before showing the entry menu, check for an existing task:
 ```
 Select your starting point:
 
-  1. idea      — vague concept, start from ideation
-  2. plan      — requirements ready, skip to PRD
-  3. design    — PRD exists, go to TRD
-  4. build     — planning done, go straight to implementation
-  5. resume    — continue an existing task by path
+  1. idea       — vague concept, start from ideation
+  2. plan       — requirements ready, skip to PRD
+  3. design     — PRD exists, go to TRD
+  4. breakdown  — TRD exists, go to feature decomposition
+  5. build      — planning done, go straight to implementation
+  6. resume     — continue an existing task by path
 
 > Enter number or sub-command name
 ```
 
 | Choice | Starts at | Pre-condition |
 |--------|-----------|---------------|
-| idea   | `steps/idea.md` | none |
-| plan   | `steps/plan.md` | none (creates new devlog) |
-| design | `steps/design.md` | PRD exists |
-| build  | `steps/build.md` | feature breakdown exists |
-| resume | prompts for devlog path | `_state.json` exists |
+| idea      | `steps/idea.md` | none |
+| plan      | `steps/plan.md` | none (creates new devlog) |
+| design    | `steps/design.md` | PRD exists |
+| breakdown | `steps/breakdown.md` | PRD exists (TRD optional) |
+| build     | `steps/build.md` | feature breakdown exists |
+| resume    | prompts for devlog path | `_state.json` exists |
 
 ## New Task Initialization
 

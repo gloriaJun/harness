@@ -41,11 +41,9 @@ Ask: "Ready to move to planning? (y / edit / stop)"
 
 ## State Update
 
-After user confirms:
-1. Set `currentStep` to `2`
-2. Append `1` to `completedSteps`
-3. Verify `artifacts.brainstorm` is set
-4. Log to `history`
+`currentStep` → 2, append 1 to `completedSteps`, `artifacts.brainstorm` ← path
+
+Follow update mechanics from `schemas/state.md`.
 
 ## Session Handoff
 

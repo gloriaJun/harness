@@ -7,18 +7,30 @@ Works with or without a devlog. Final step of the dev lifecycle.
 
 ## Entry Check
 
-1. Detect devlog context (same rules as tools/retro/SKILL.md):
-   - Active devlog found matching current repo → **lifecycle mode**
-   - Not found → **standalone mode**
+**Resolve devlogs root** from cwd:
 
-2. If lifecycle mode:
-   - Ask: "process notes를 작성할까요? (y/n)"
-     - `n` → stop. Show: "Skipped. Run `/dev wiki` anytime to write it later."
-     - `y` → proceed
-   - Read `_state.json`: extract `taskName`, `history`, `artifacts.retro`
-   - If `currentStep < 7`: warn "retro step not yet done" — do not block
+| cwd contains | devlogs root |
+|---|---|
+| `GitHubWork` | `~/Documents/GitHubWork/_claude/devlogs/` |
+| `GitHubPrivate` | `~/Documents/GitHubPrivate/_claude/devlogs/` |
+| neither | ask the user |
 
-3. If standalone mode: proceed directly without asking.
+**Scan for candidate tasks** (either condition qualifies):
+- Retro done, wiki not started: `currentStep == 7 AND 7 NOT IN completedSteps`
+- Wiki in progress: `currentStep == 8 AND 8 NOT IN completedSteps`
+
+Prefer tasks whose `taskName` matches: `basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)`
+
+If multiple candidates: list them and ask user to choose.
+
+**Lifecycle mode** (candidate task found):
+1. Read `_state.json`: extract `taskName`, `history`, `artifacts.retro`
+2. If `currentStep < 7`: warn "retro step not yet done" — do not block
+3. Ask: "Write process notes for **<taskName>**? (y/n)"
+   - `n` → stop. Show: "Skipped. Run `/dev wiki` anytime to write it later."
+   - `y` → proceed
+
+**Standalone mode** (no candidate task found): proceed directly without asking.
 
 ---
 
@@ -66,20 +78,17 @@ After process note is saved:
 3. Execute the chosen action. Delete only after explicit confirmation.
 
 4. Update `_index.md`:
-   - Read `<devlogs-root>/_index.md`
-   - Find the row matching the current task directory name
+   - Find the row matching the task directory in `<devlogs-root>/_index.md`
    - If deleted or archived → remove the row entirely
-   - If kept → update status column to `완료`
+   - If kept → update step column to `Step 8 (wiki — done)`
    - Update frontmatter `updated:` to today's date
 
 ---
 
-## State Update (lifecycle mode only)
+## State Update (lifecycle mode only, if not deleting)
 
-Update `_state.json` (if not deleting):
-- Set `currentStep` to `8`
-- Append `7` to `completedSteps`
-- Register wiki file path in `artifacts.wiki`
+- `currentStep` → 8, append 7 and 8 to `completedSteps`
+- `artifacts.wiki` ← wiki file path
 - Append to `history`: `{ "step": 7, "action": "wiki saved + devlog cleaned", "timestamp": "ISO 8601" }`
 
 ---

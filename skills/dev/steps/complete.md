@@ -5,10 +5,7 @@ When all features are done.
 ## Process
 
 1. Final update of PRD and TRD to reflect any changes made during execution.
-2. Update `_state.json` in the devlogs task subdirectory:
-   - Set `currentStep` to `6`
-   - Append `6` to `completedSteps`
-3. If documents were saved in the task subdirectory (temporary):
+2. If documents were saved in the task subdirectory (temporary):
    - Ask (follow Single Choice pattern):
      ```
      Temporary files found in the task subdirectory.
@@ -21,20 +18,37 @@ When all features are done.
      > Enter number or free text
      ```
    - Delete only after explicit confirmation.
-4. Present summary:
+3. Present summary:
    - What was built
    - Files changed
    - Follow-up items
-5. Run **insight**: Load and execute `skills/insight/SKILL.md` inline (in main context).
+4. Run **insight**: Load and execute `~/.claude/skills/insight/SKILL.md` inline (in main context).
    This reviews the entire task workflow and suggests grimoire improvements.
-6. Clean up `_state.json` in the devlogs directory: optionally archive or delete based on user preference.
 
-## Next
-
-Optionally capture post-completion notes (both will ask for confirmation):
-- `/dev retro` — session retrospective → vault note
-- `/dev wiki` — process notes + devlog cleanup
+---
 
 ## Session Handoff
 
-Read `steps/_handoff.md` and follow the handoff instructions for this step.
+### State Update
+
+`currentStep` → 6, append 6 to `completedSteps`. Append to `history`.
+
+Follow update mechanics from `schemas/state.md`.
+
+### _index.md Update
+
+- Find the row matching the current task directory in `<devlogs-root>/_index.md`
+- Update step column to `Step 6 (complete)`
+- Update frontmatter `updated:` to today's date
+
+### Completion Message
+
+```
+✅ [complete] done — task wrap-up finished
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Optional next steps:
+  /dev retro  — session retrospective
+  /dev wiki   — process notes + devlog cleanup
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```

@@ -8,7 +8,7 @@ Stored in the devlog task subdirectory: `_claude/devlogs/<task-dir>/_state.json`
 ```json
 {
   "taskName": "string — kebab-case task identifier",
-  "currentStep": "number — 0-8, the step to resume from (6=complete, 7=retro, 8=wiki)",
+  "currentStep": "number — 0-8 (6=complete, 7=retro-tool, 8=wiki-tool)",
   "entryPoint": "idea | plan | design | build | direct",
   "completedSteps": [0, 1],
   "artifacts": {
@@ -65,6 +65,11 @@ Stored in the devlog task subdirectory: `_claude/devlogs/<task-dir>/_state.json`
 Task directory: `<devlogs-root>/YYYY-MM-DD-<repo>-<task-name>/`
 
 ## Rules
+
+### Step File Convention
+
+Step files declare only the unique transition values (target `currentStep`, artifact paths to register).
+The general mechanics — persist to disk, append to `history`, resolve paths — apply from the rules below.
 
 ### Creation
 - Created at entry point selection with initial values
