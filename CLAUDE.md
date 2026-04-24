@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Harness is a personal AI coding assistant configuration hub — the single source of truth for Claude Code and Codex CLI settings. It manages instruction files, hooks, and skills via symlinks from `$HOME` config directories.
+Grimoire is a personal AI coding assistant configuration hub — the single source of truth for Claude Code and Codex CLI settings. It manages instruction files, hooks, and skills via symlinks from `$HOME` config directories.
 
 There is no build system, no package manager, and no test runner. The repo contains Markdown specifications, prompt templates, shell scripts, and static HTML/CSS/JS.
 
@@ -33,7 +33,7 @@ skills/          # Claude Code skills, symlinked to ~/.claude/skills/
   task-process/  # Orchestrator: ideation -> design -> implementation
   sync-config/   # Link shared config to project .claude/
   cleanup/       # Diagnose and clean up sessions, logs, caches
-  insight/       # Post-task improvement suggestions for harness
+  insight/       # Post-task improvement suggestions for grimoire
   pre-commit-check/  # Auto self-review before commit
   work-plan-close/   # Close completed work-plan: archive docs, delete artifacts, update _index.md
 templates/       # Settings templates (no secrets, reference only)

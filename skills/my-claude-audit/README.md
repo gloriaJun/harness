@@ -90,12 +90,12 @@ cp -r skills/g-my-claude-audit ~/.claude/skills/g-my-claude-audit
 ### Via symlink
 
 ```bash
-ln -s /path/to/harness/skills/g-my-claude-audit ~/.claude/skills/g-my-claude-audit
+ln -s /path/to/grimoire/skills/g-my-claude-audit ~/.claude/skills/g-my-claude-audit
 ```
 
 ### As part of a plugin marketplace
 
-Add this harness repo as a local marketplace in `~/.claude/settings.json`.
+Add this grimoire repo as a local marketplace in `~/.claude/settings.json`.
 
 ## Configuration
 

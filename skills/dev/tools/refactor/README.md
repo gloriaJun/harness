@@ -59,10 +59,10 @@ Step 0: Scope → Step 1: Analysis → Step 2: Proposal → Step 3: Confirm → 
 ## Installation
 
 ```bash
-ln -s /path/to/harness/skills/refactor ~/.claude/skills/refactor
+ln -s /path/to/grimoire/skills/refactor ~/.claude/skills/refactor
 ```
 
-Or run `setup.sh` from the harness repo root.
+Or run `setup.sh` from the grimoire repo root.
 
 ## License
 

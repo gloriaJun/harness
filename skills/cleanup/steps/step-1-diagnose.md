@@ -58,10 +58,10 @@ Total: 952.3M across 6 categories
 
 === Memory Audit (M1) ===
 
-  ORPHANED     GitHub-harness          → /Users/.../GitHub/harness (경로 없음)
+  ORPHANED     GitHub-grimoire          → /Users/.../GitHub/grimoire (경로 없음)
   ORPHANED     GitHubLine-one          → /Users/.../GitHubLine/one (경로 없음)
   BROKEN_LINK  GitHubPrivate-online-party-game  → user_github_multi_account.md (파일 없음)
-  DUPLICATE    GitHub-harness          → same repo as GitHubPrivate-harness
+  DUPLICATE    GitHub-grimoire          → same repo as GitHubPrivate-grimoire
 
   이슈 없음 시: "✓ 메모리 이상 없음"
 ```

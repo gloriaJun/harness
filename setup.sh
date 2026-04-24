@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh — Create symlinks from $HOME config dirs to harness repo
+# setup.sh — Create symlinks from $HOME config dirs to grimoire repo
 # Usage:
 #   ./setup.sh              Full setup (symlinks + AGENTS.md + plugin info)
 #   ./setup.sh --dry-run    Preview changes without modifying anything
@@ -102,7 +102,7 @@ generate_agents_md() {
     mkdir -p "$CODEX_HOME"
     cat > "$output" << 'HEADER'
 # Codex CLI Instructions
-# Auto-generated from harness/claude/ — DO NOT EDIT DIRECTLY
+# Auto-generated from grimoire/claude/ — DO NOT EDIT DIRECTLY
 # Run: setup.sh --regenerate to update
 HEADER
     echo "# Generated: $(date +%Y-%m-%d)" >> "$output"
@@ -181,7 +181,7 @@ if $REGENERATE_ONLY; then
     exit 0
 fi
 
-echo "=== Harness Setup ==="
+echo "=== Grimoire Setup ==="
 echo "Repo: $HARNESS_DIR"
 if $DRY_RUN; then
     echo -e "${YELLOW}(dry run — no changes will be made)${NC}"
@@ -221,7 +221,7 @@ if [ -d "$HARNESS_DIR/claude/instructions" ]; then
     safe_link "$HARNESS_DIR/claude/instructions" "$CLAUDE_HOME/instructions"
 fi
 
-# --- 1c. Claude Code: settings.json (source of truth in harness) ---
+# --- 1c. Claude Code: settings.json (source of truth in grimoire) ---
 if [ -f "$HARNESS_DIR/claude/settings.json" ]; then
     safe_link "$HARNESS_DIR/claude/settings.json" "$CLAUDE_HOME/settings.json"
 fi
@@ -271,7 +271,7 @@ else
 fi
 
 # --- 6. Codex CLI: rules ---
-# default.rules is NOT managed by harness — Codex writes session-approved
+# default.rules is NOT managed by grimoire — Codex writes session-approved
 # commands there automatically. Managing it via symlink would commit internal
 # URLs to the repo. Each machine maintains its own ~/.codex/rules/default.rules.
 

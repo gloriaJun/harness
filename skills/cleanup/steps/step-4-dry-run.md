@@ -41,10 +41,10 @@ SIZE=$(echo "$FILES" | xargs du -ch 2>/dev/null | tail -1 | cut -f1)
   ~/.codex/worktrees/7006/ (branch: refactor/baz, last modified: 2026-01-15)
 
 [M1] Memory issues: 4 items
-  ORPHANED     GitHub-harness          → /Users/.../GitHub/harness
+  ORPHANED     GitHub-grimoire          → /Users/.../GitHub/grimoire
   ORPHANED     GitHubLine-one          → /Users/.../GitHubLine/one
   BROKEN_LINK  GitHubPrivate-...       → user_github_multi_account.md
-  DUPLICATE    GitHub-harness          → same repo as GitHubPrivate-harness
+  DUPLICATE    GitHub-grimoire          → same repo as GitHubPrivate-grimoire
 
 Total: 548.5M to be freed
 

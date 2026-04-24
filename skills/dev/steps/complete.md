@@ -24,7 +24,7 @@ When all features are done.
    - Files changed
    - Follow-up items
 5. Run **insight**: Load and execute `skills/insight/SKILL.md` inline (in main context).
-   This reviews the entire task workflow and suggests harness improvements.
+   This reviews the entire task workflow and suggests grimoire improvements.
 6. Clean up `_state.json` in the devlogs directory: optionally archive or delete based on user preference.
 
 ## Next
