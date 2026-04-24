@@ -13,7 +13,7 @@ Requires an active devlog with `currentStep >= 6` (complete step done).
 
 Delegate to `vault-retro` skill inline:
 
-1. Load `~/.claude/skills/vault-retro/SKILL.md` via Read tool.
+1. Load `~/Documents/obsidian-vault/.claude/skills/vault-retro/SKILL.md` via Read tool.
 2. Execute the vault-retro workflow with task context pre-filled:
    - **task-name**: `_state.json` → `taskName`
    - **scope**: `work` (default; ask user to confirm if ambiguous)

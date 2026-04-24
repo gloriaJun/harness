@@ -30,7 +30,6 @@ skills/          # Claude Code skills, symlinked to ~/.claude/skills/
     tools/       # Inline tools: refactor/, troubleshoot/, test/
     schemas/     # State schema
   my-claude-audit/
-  task-process/  # Orchestrator: ideation -> design -> implementation
   sync-config/   # Link shared config to project .claude/
   cleanup/       # Diagnose and clean up sessions, logs, caches
   insight/       # Post-task improvement suggestions for grimoire

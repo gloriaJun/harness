@@ -15,7 +15,7 @@ This is the final step of the dev lifecycle.
 
 Delegate to `vault-wiki-process` skill inline:
 
-1. Load `~/.claude/skills/vault-wiki-process/SKILL.md` via Read tool.
+1. Load `~/Documents/obsidian-vault/.claude/skills/vault-wiki-process/SKILL.md` via Read tool.
 2. Execute vault-wiki-process workflow with task context pre-filled:
    - **task-name**: `_state.json` → `taskName`
    - **scope**: `work` (default; confirm if ambiguous)
