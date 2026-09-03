@@ -11,7 +11,7 @@ file="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')"
 # Scope and per-type budgets (chars; tokens ~= chars/4). Non-matches pass.
 # Order matters: templates/ must match before the generic references/ pattern.
 case "$file" in
-  */claude/CLAUDE.md|"$HOME/.claude/CLAUDE.md")   budget=14000; type="CLAUDE.md" ;;
+  */claude/CLAUDE.md|"$HOME/.claude/CLAUDE.md"|"$HOME/.claude/AGENTS.md") budget=14000; type="assembled-global" ;;
   */instructions/shared/*.md)                     budget=5000;  type="shared-fragment" ;;
   */claude/claude-only.md)                        budget=5000;  type="claude-only" ;;
   */instructions/references/templates/*.md)       budget=9000;  type="template" ;;
@@ -49,8 +49,9 @@ if [[ "$type" == "SKILL.md" ]]; then
     || problems+="- no README.md next to SKILL.md (required by instructions/references/skill-authoring.md).\n"
 fi
 
-# Assembled CLAUDE.md budget: per-fragment compliance does not guarantee the
-# assembled total. Mirrors sync.sh assemble_claude_md (each file + one newline).
+# Loaded CLAUDE.md budget: per-fragment compliance does not guarantee the
+# loaded total. Mirrors sync.sh: 12 chars for the `@AGENTS.md` stub line, then
+# each file + one newline.
 if [[ "$type" == "shared-fragment" || "$type" == "claude-only" ]]; then
   if [[ "$type" == "shared-fragment" ]]; then
     claude_root="$(cd "$(dirname "$file")/../.." && pwd)"
@@ -59,13 +60,13 @@ if [[ "$type" == "shared-fragment" || "$type" == "claude-only" ]]; then
   fi
   # claude-only.md absent (e.g. the live ~/.claude mirror): repo-only check, skip.
   if [[ -f "$claude_root/claude-only.md" ]]; then
-    assembled=0
+    assembled=12
     for frag in "$claude_root/instructions/shared/"*.md "$claude_root/claude-only.md"; do
       [[ -f "$frag" ]] || continue
       assembled=$(( assembled + $(wc -c < "$frag") + 1 ))
     done
     if (( assembled > 14000 )); then
-      problems+="- assembled CLAUDE.md would be ${assembled} chars > budget 14000. Apply one-in-one-out per instructions/references/definition-files.md, or justify the overage in the commit body.\n"
+      problems+="- CLAUDE.md would load ${assembled} chars (AGENTS.md + claude-only.md) > budget 14000. Apply one-in-one-out per instructions/references/definition-files.md, or justify the overage in the commit body.\n"
     fi
   fi
 fi

@@ -2,8 +2,9 @@
 # One-way sync: <repo>/claude/ -> ~/.claude/
 #
 # Ownership rules:
-#   - CLAUDE.md                       : assembled at ~/.claude root from
-#                                       instructions/shared/*.md + claude-only.md
+#   - AGENTS.md                       : assembled at ~/.claude root from
+#                                       instructions/shared/*.md (shared body)
+#   - CLAUDE.md                       : stub: "@AGENTS.md" import + claude-only.md
 #   - instructions/, hooks/, agents/  : wholly owned -> full mirror (rsync --delete)
 #   - skills/                         : shared namespace. Only "g-*" entries are
 #                                       managed here. "l-*" belongs to the company
@@ -70,28 +71,46 @@ clear_symlink() {
   fi
 }
 
-# 1. CLAUDE.md: assemble shared fragments (sorted by filename) + claude-only.md.
-#    Budget: warn above 14000 chars (~3,500 tok, definition-files.md).
+# 1. AGENTS.md = shared fragments (sorted); CLAUDE.md = stub that @imports it
+#    and appends claude-only.md. Budget: warn when the loaded total exceeds
+#    14000 chars (~3,500 tok, definition-files.md).
 CLAUDE_BUDGET=14000
+clear_symlink "$DEST/AGENTS.md"
 clear_symlink "$DEST/CLAUDE.md"
-assemble_claude_md() {
+assemble_agents_md() {
   local f
-  for f in "$SRC/instructions/shared/"*.md "$SRC/claude-only.md"; do
+  for f in "$SRC/instructions/shared/"*.md; do
     [[ -f "$f" ]] || { warn "assembly source missing: $f"; continue; }
     cat "$f"
     printf '\n'
   done
 }
+assemble_claude_md() {
+  # Relative import resolves against the importing file, i.e. ~/.claude/.
+  printf '@AGENTS.md\n\n'
+  if [[ -f "$SRC/claude-only.md" ]]; then
+    cat "$SRC/claude-only.md"
+    printf '\n'
+  else
+    warn "assembly source missing: $SRC/claude-only.md"
+  fi
+}
+agents_size="$(assemble_agents_md | wc -c | tr -d ' ')"
+claude_size="$(assemble_claude_md | wc -c | tr -d ' ')"
+loaded_size=$(( agents_size + claude_size ))
 if [[ "$DRY_RUN" -eq 1 ]]; then
-  log "[dry-run] assemble instructions/shared/*.md + claude-only.md -> $DEST/CLAUDE.md ($(assemble_claude_md | wc -c | tr -d ' ') chars)"
+  log "[dry-run] assemble instructions/shared/*.md -> $DEST/AGENTS.md (${agents_size} chars)"
+  log "[dry-run] assemble @AGENTS.md + claude-only.md -> $DEST/CLAUDE.md (${claude_size} chars, ${loaded_size} loaded)"
 else
+  tmp_agents="$(mktemp)"
+  assemble_agents_md > "$tmp_agents"
+  mv "$tmp_agents" "$DEST/AGENTS.md"
   tmp_claude="$(mktemp)"
   assemble_claude_md > "$tmp_claude"
   mv "$tmp_claude" "$DEST/CLAUDE.md"
 fi
-claude_size="$(assemble_claude_md | wc -c | tr -d ' ')"
-if (( claude_size > CLAUDE_BUDGET )); then
-  warn "assembled CLAUDE.md is ${claude_size} chars > budget ${CLAUDE_BUDGET}"
+if (( loaded_size > CLAUDE_BUDGET )); then
+  warn "CLAUDE.md loads ${loaded_size} chars (AGENTS.md + claude-only.md) > budget ${CLAUDE_BUDGET}"
 fi
 
 # 2. Wholly owned dirs: full mirror. A top-level dir that disappeared from
