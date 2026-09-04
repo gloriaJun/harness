@@ -51,8 +51,9 @@ EXCLUDE_SKILLS=()
 # Code; only the Codex mirror is skipped.
 EXCLUDE_PLUGINS=(example-skills figma)
 
-AGENTS_MAX=32768   # codex project_doc_max_bytes default; combined cap with project docs
-AGENTS_WARN=24576  # 75% of max: keep headroom for per-repo AGENTS.md
+# Codex applies no size limit to the global AGENTS.md (project_doc_max_bytes
+# counts project docs only), so this is a self-imposed prompt-cost budget.
+AGENTS_WARN=24576
 
 DRY_RUN=0
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -107,12 +108,8 @@ EOF
 }
 
 agents_size="$(generate_agents_md | wc -c | tr -d ' ')"
-if (( agents_size > AGENTS_MAX )); then
-  echo "ABORT: AGENTS.md would be ${agents_size} bytes > codex cap ${AGENTS_MAX} (project_doc_max_bytes). Trim claude/instructions/shared/." >&2
-  exit 1
-fi
 if (( agents_size > AGENTS_WARN )); then
-  warn "AGENTS.md is ${agents_size} bytes > ${AGENTS_WARN} (75% of the ${AGENTS_MAX} combined cap)"
+  warn "AGENTS.md is ${agents_size} bytes > budget ${AGENTS_WARN} (loaded into every Codex session). Trim claude/instructions/shared/."
 fi
 if [[ "$DRY_RUN" -eq 1 ]]; then
   log "[dry-run] generate $AGENTS_OUT (${agents_size} bytes)"
