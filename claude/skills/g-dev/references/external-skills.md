@@ -18,7 +18,7 @@ Plugin-installed skills can carry an arbitrary namespace prefix (e.g.
 `9d2f1ae18723:frontend-design`): a listed name preceded by any `<prefix>:`
 counts as present; invoke it by the full prefixed name.
 
-Name present -> invoke via the Skill tool. Name absent -> print the matching
+Name present -> invoke that skill (Claude: Skill tool; Codex: `$<name>`). Name absent -> print the matching
 install block below, use the fallback, and continue; never guess at an
 invocation. Newly installed skills appear only in NEW sessions - right after
 installing, the current session still counts as absent.

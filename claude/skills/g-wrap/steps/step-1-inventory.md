@@ -26,8 +26,9 @@ The collector never inspects processes. From this conversation only, add one
 row per item:
 
 - `server` (`deletable = yes`): a dev or sample server started this session
-  and still running. Record how it stops: a background Bash shell stops with
-  KillShell and its shell id; a known pid stops with `kill <pid>`.
+  and still running. Record how it stops: a shell started through the
+  client's background-shell tool stops with that tool's kill action (Claude:
+  KillShell + shell id); a known pid stops with `kill <pid>`.
 - `branch` (`deletable = yes`): a local branch created this session, by name.
 
 Nothing in the conversation: add nothing. Never scan listening ports and

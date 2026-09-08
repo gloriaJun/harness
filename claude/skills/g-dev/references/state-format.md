@@ -123,7 +123,7 @@ via the handoff procedure below.
 1. Write the files this step owns: the task file (build) or `state.md`
    (step transitions: set the next `current-step`). Step 3b merge: the
    review file only, never `state.md`.
-2. Invoke g-vault-log (Skill tool, skill `g-vault-log`) with args
+2. Invoke the g-vault-log skill with args
    `update <domain>/<slug>` plus a summary block containing: the step just
    finished, decisions made (with the why), work done (with evidence:
    commands run, results, commit hashes), open questions. g-vault-log

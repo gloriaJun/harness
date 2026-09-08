@@ -26,7 +26,7 @@ stop.
 ## B. Close out
 
 1. Set `state.md` `current-step: complete`, updated today.
-2. Invoke g-vault-log (Skill tool, skill `g-vault-log`) with args
+2. Invoke the g-vault-log skill with args
    `complete <domain>/<slug>`. It proposes the archive move, the assets
    disposition, and wiki candidates - every move and deletion is
    per-item user-confirmed there.

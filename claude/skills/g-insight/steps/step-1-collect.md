@@ -31,10 +31,10 @@ From the conversation, mark each artifact `exercised` when any holds:
 - AGENTS.md or CLAUDE.md: mark the guidance files loaded into this session as
   exercised; when the loaded file list is unavailable, mark them `미확인` and
   state how to verify it.
-- an on-demand reference file Read this session
-- a skill invoked (Skill tool or slash command)
+- an on-demand reference file read this session
+- a skill invoked (Skill tool, slash command, or `$name` mention)
 - a hook that fired (hook feedback visible in this session)
-- an agent type dispatched (Agent tool)
+- an agent type dispatched (Agent tool or a Codex subagent)
 - a memory file recalled into this session (system-reminder recall)
 
 Output a two-column list: artifact -> exercised (how) / not exercised.

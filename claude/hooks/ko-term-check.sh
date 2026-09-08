@@ -74,10 +74,15 @@ while IFS='|' read -r term repl; do
   (( count >= 3 )) && break
 done <<< "$dict"
 
+# Hard rule 8 in chat prose: same byte match as emdash-check.sh.
+if printf '%s' "$prev" | LC_ALL=C grep -qE $'\xe2\x80\x94|\xe2\x80\x93'; then
+  hits+="  em/en dash -> hyphen, colon, or parentheses (hard rule 8)"$'\n'
+fi
+
 [[ -n "$hits" ]] || exit 0
 
 cat <<EOF
-Terminology check on the previous response (CLAUDE.md, HOW TO TALK TO ME):
+Style check on the previous response (CLAUDE.md, HOW TO TALK TO ME / hard rule 8):
 $hits
 Use the right-hand form from this response on. If the term named an actual
 identifier (a file, flag, or command), keep it in backticks and ignore this.

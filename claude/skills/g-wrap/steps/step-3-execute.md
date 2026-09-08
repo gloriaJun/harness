@@ -17,10 +17,10 @@ directory is skipped with the reason `directory, use /g-cleanup`; never
 
 ## B. Servers
 
-Run the stop method recorded in Step 1.B: KillShell with the shell id for a
-background Bash shell, or `kill <pid>` for a known pid. Verify a pid stop
-with `kill -0 <pid>` (non-zero exit means stopped); a KillShell stop needs no
-verification. Still alive: report `still running` and leave it.
+Run the stop method recorded in Step 1.B: the background-shell tool's kill
+action (Claude: KillShell + shell id), or `kill <pid>` for a known pid. Verify
+a pid stop with `kill -0 <pid>` (non-zero exit means stopped); a tool-side
+stop needs no verification. Still alive: report `still running` and leave it.
 
 ## C. Worktrees
 

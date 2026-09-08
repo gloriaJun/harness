@@ -8,41 +8,56 @@
 set -euo pipefail
 
 input="$(cat)"
-file="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')"
-[[ -n "$file" ]] || exit 0
+source "$(dirname "${BASH_SOURCE[0]}")/hook-input.sh"
 
-# Definition-file scope. Non-matches pass silently (exit 0).
-case "$file" in
+# Definition-file scope; returns 0 when $1 is a definition file.
+in_scope() {
+case "$1" in
   # Definition filenames anywhere.
   */CLAUDE.md|*/AGENTS.md|*/SKILL.md) ;;
   # Claude/Codex config trees (unambiguous).
   */.claude/agents/*|*/.claude/commands/*|*/.claude/instructions/*|*/.claude/hooks/*|*/.claude/skills/*|*/.codex/*) ;;
   # claude/ source trees (grimoire layout); extension-limited to cut false
   # positives from unrelated project dirs named claude/.
-  */claude/agents/*.md|*/claude/commands/*.md|*/claude/instructions/*.md|*/claude/hooks/*.sh|*/claude/skills/*.md|*/claude/skills/*.sh|*/claude/skills/*.json|*/claude/claude-only.md|*/claude/settings.*.json) ;;
-  *) exit 0 ;;
+  */claude/agents/*.md|*/claude/commands/*.md|*/claude/instructions/*.md|*/claude/hooks/*.sh|*/claude/skills/*.md|*/claude/skills/*.sh|*/claude/skills/*.json|*/claude/claude-only.md|*/claude/settings.*.json) return 0 ;;
+  *) return 1 ;;
 esac
+}
 
 # Marker pass: def-review-approve.sh records paths whose Korean review the
 # user approved in chat; unexpired entries skip the prompt (exact path match).
 MARKER="$HOME/.claude/.def-review-approvals"
 TTL=300
-if [[ -f "$MARKER" ]]; then
+approved() {
+  local dir abs ts path now
+  [[ -f "$MARKER" ]] || return 1
   now="$(date +%s)"
-  if dir="$(cd "$(dirname "$file")" 2>/dev/null && pwd)"; then
-    abs="$dir/$(basename "$file")"
-    while IFS=$'\t' read -r ts path; do
-      if [[ "$ts" =~ ^[0-9]+$ && "$path" == "$abs" ]] && (( now - ts < TTL )); then
-        reason="Pre-approved: Korean review for this path was recorded by def-review-approve.sh within the TTL (5 minutes)."
-        jq -cn --arg reason "$reason" \
-          '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",permissionDecisionReason:$reason}}'
-        exit 0
-      fi
-    done < "$MARKER"
-  fi
-fi
+  dir="$(cd "$(dirname "$1")" 2>/dev/null && pwd)" || return 1
+  abs="$dir/$(basename "$1")"
+  while IFS=$'\t' read -r ts path; do
+    [[ "$ts" =~ ^[0-9]+$ && "$path" == "$abs" ]] && (( now - ts < TTL )) && return 0
+  done < "$MARKER"
+  return 1
+}
 
-reason="Definition file write. Confirm the changed parts were presented in Korean in chat and approved, and that the file content is English (change flow, instructions/references/definition-files.md)."
-jq -cn --arg reason "$reason" \
-  '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:$reason}}'
+# One decision for the whole call: any unapproved definition file -> ask;
+# only approved ones -> allow; no definition file -> silent pass.
+decision=""
+while IFS= read -r file; do
+  in_scope "$file" || continue
+  if approved "$file"; then
+    [[ -z "$decision" ]] && decision="allow"
+  else
+    decision="ask"
+  fi
+done < <(hook_files)
+[[ -n "$decision" ]] || exit 0
+
+if [[ "$decision" == "allow" ]]; then
+  reason="Pre-approved: Korean review for this path was recorded by def-review-approve.sh within the TTL (5 minutes)."
+else
+  reason="Definition file write. Confirm the changed parts were presented in Korean in chat and approved, and that the file content is English (change flow, instructions/references/definition-files.md)."
+fi
+jq -cn --arg d "$decision" --arg reason "$reason" \
+  '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:$d,permissionDecisionReason:$reason}}'
 exit 0

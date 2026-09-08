@@ -1,7 +1,7 @@
 ## HOW TO WORK FOR ME
 
 - Review first, execute second: for code changes not explicitly requested, present a proposal (reason + impact scope) and wait for confirmation.
-- Within an explicitly approved task scope, changes needed to complete that task (including fixing errors caused by your own changes) count as in scope. Adjacent refactoring, style cleanup, and "while I'm here" improvements are out of scope - propose them in a single line at the end of the deliverable.
+- Within an explicitly approved task scope, changes needed to complete that task (including fixing errors caused by your own changes) count as in scope. Adjacent refactoring, style cleanup, and "while I'm here" improvements are out of scope (work protocol 6).
 - Request verb protocol:
   - "~해줘", "~해" → execute, scoped to the act the verb names ("봐줘/확인해줘" = investigate and report, "고쳐줘" = fix).
   - "~하려고 해", "~할 예정이야", "~할 계획이야" → the user's own plan: analyze and advise only.
@@ -9,21 +9,21 @@
   - A bare go ("진행", "다음") approves the most recently presented plan as-is; it never resolves an open choice or replaces a pending opinion request - deliver the pending analysis first.
 - Phase gate: when I have laid out work in phases ("A 끝나면 B", "영문 전환은 별도 요청 시 진행"), stop at each boundary and report; start the next phase only on an explicit go ("진행", "다음") - never roll on just because the current phase went well.
 - Ambiguity handling: ask only about fatal assumptions and proceed on the rest (work protocol step 2). When options are weighed, give one reasoned recommendation - never a full option list or invented fake alternatives.
-- Evidence discipline: back every claim with file:line, code, specs, or logs. Mark anything unverified as "미확인". Do not invent APIs, flags, config keys, or library behavior.
+- Evidence discipline: back every claim with file:line, code, specs, or logs (hard rule 3). Do not invent APIs, flags, config keys, or library behavior.
 - Progress report verification: before reporting progress, check each claim against actual results (logs, diffs, test output). Report as complete only work you can evidence, and be honest about what is not yet verified.
 - Pushback is expected behavior: present explicit pros and cons for design/technical decisions.
 - Definition of "done": change applied + verified + reported with evidence. Default verification: run tests (no prior confirmation needed); no test command → lint and build; neither → report as unverified ("검증 수단 없음"), never as verified. Work needing the user's direct check (UI/visual, deploys, configuration) gets its verification level confirmed first. Report failed tests as failed - never gloss over.
 - Definition files (CLAUDE.md, AGENTS.md, SKILL.md anywhere; agents/, commands/, instructions/, hooks/, skills/ in `.claude`, `.codex`, or grimoire `claude/` trees): read `~/.claude/instructions/references/definition-files.md` before changing one; never write before its Korean review is approved.
 - Obsidian vault (`~/Documents/obsidian-vault/`):
-  - Reading: when a task outside the vault needs my notes, read the vault's `_index.md` first, then scan filenames (`find <folder> -maxdepth 2 -name '*.md'`) and Read at most 3 selected files; nothing relevant → say so and continue without vault context.
-  - Recording split: how Claude works for me (feedback, preferences, session context) → Claude memory; knowledge I would reopen later (root causes, research conclusions, reasoned decisions, AI-tooling know-how) → the vault, always via /g-vault-log.
-  - Capture proposal: a wrap-up request ("마무리") runs /g-wrap, owner of the record decision and teardown. Otherwise, at the final report, propose a record for (a) a root cause, (b) a 2+ source conclusion, or (c) a reasoned decision in no repo file or commit: append "볼트 기록 제안: <summary> → /g-vault-log" once, run only on an explicit go. Declined → write nothing and name what already exists.
+  - Reading: when a task outside the vault needs my notes, read the vault's `_index.md` first, then scan filenames (`find <folder> -maxdepth 2 -name '*.md'`) and read at most 3 selected files; nothing relevant → say so and continue without vault context.
+  - Recording split: how the assistant works for me (feedback, preferences, session context) → assistant memory (Claude: auto memory); knowledge I would reopen later (root causes, research conclusions, reasoned decisions, AI-tooling know-how) → the vault, always via the g-vault-log skill.
+  - Capture proposal: a wrap-up request ("마무리") runs the g-wrap skill, owner of the record decision and teardown. Otherwise, at the final report, propose a record for (a) a root cause, (b) a 2+ source conclusion, or (c) a reasoned decision in no repo file or commit: append "볼트 기록 제안: <summary> → g-vault-log" once, run only on an explicit go. Declined → write nothing and name what already exists.
   - Never run `git commit` or `git push` inside the vault.
 - Git work rules:
   - Commit types: feat, fix, perf, refactor, revert, style, docs, test, build, ci, chore. Do not invent types beyond these.
-  - Commit proposal: when a work unit is complete, proactively propose a commit - target file list, message, and anything intentionally excluded - and execute only after approval. Split unrelated changes into separate commits. Never commit without an approved proposal.
-  - On a PR create/submit request → run g-pr; if unavailable, follow `~/.claude/instructions/references/templates/pr.md`.
+  - Commit proposal: when a work unit is complete, proactively propose a commit - target file list, message, and anything intentionally excluded - and execute only after approval. Split unrelated changes into separate commits.
+  - On a PR create/submit request → run the g-pr skill; if unavailable, follow `~/.claude/instructions/references/templates/pr.md`.
   - Branch naming: `<type>/<short-description>` (kebab-case). Formats that carry company tickets follow the company repository's rules.
   - Designated branch check: when the user names a working branch, record it as the session's designated branch. Before commit/push, if the current branch differs from the designated one, show both branches side by side and confirm where to commit.
   - Worktree guard: if the current branch matches the `worktree-*` pattern and no branch is designated, stop before commit/push and ask which branch to target.
-- Token awareness: read only the file sections you need. Do not dump whole files into context.
+- Token awareness: a file over 300 lines (`wc -l`) is read in line-range sections, never dumped into context in one read.

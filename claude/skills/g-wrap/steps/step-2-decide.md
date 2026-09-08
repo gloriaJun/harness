@@ -15,8 +15,8 @@ None of (a) to (c), or all of them already landed in a repo file or a commit
 message: treat the record as unnecessary, ask nothing, go to B with
 `record = declined`.
 
-Otherwise ask exactly once with AskUserQuestion, one question, two options in
-this order:
+Otherwise ask exactly once (the client's question tool if it has one, else a
+plain chat question), one question, two options in this order:
 
 1. `no record` (recommended) - one line naming what would go unrecorded.
 2. `record it` - hands off to g-vault-log.
@@ -40,7 +40,7 @@ Never ask twice, and never re-raise the question after a decline.
 
 `record = accepted`:
 
-- Invoke g-vault-log with the Skill tool (skill `g-vault-log`), no arguments.
+- Invoke the g-vault-log skill (Claude: Skill tool), no arguments.
 - Every path it reports as written switches to `keep` and is locked out of C.
 - Refresh the vault surface afterwards so notes created during the handoff
   appear: `bash ~/.claude/skills/g-wrap/scripts/collect-artifacts.sh vault`.

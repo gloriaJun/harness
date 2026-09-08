@@ -20,7 +20,7 @@ Source of truth for the user-level Claude Code configuration (v2). `claude/` is 
 
 ## Layout
 
-- `claude/` - the synced payload: instructions/shared (tool-neutral CLAUDE.md/AGENTS.md fragments), claude-only.md (Claude-specific sections), instructions/references (writing-style, tech-stack, code-review, skill-authoring, definition-files, templates/), hooks (pr-guard.sh, emdash-check.sh, definition-check.sh, def-review-gate.sh, def-review-approve.sh, delegation-report-reminder.sh), settings.hooks.json, settings.statusline.json, settings.permissions.json
+- `claude/` - the synced payload: instructions/shared (tool-neutral CLAUDE.md/AGENTS.md fragments), claude-only.md (Claude-specific sections), instructions/references (writing-style, tech-stack, code-review, skill-authoring, definition-files, templates/), hooks (pr-guard.sh, emdash-check.sh, definition-check.sh, def-review-gate.sh, def-review-approve.sh, delegation-report-reminder.sh, comment-cap-check.sh, ko-term-check.sh, hook-input.sh, workspace-context.sh), settings.hooks.json, settings.statusline.json, settings.permissions.json
 - `sync.sh`, `codex-sync.sh`, `githooks/post-commit` - sync mechanism
 - `bootstrap.sh`, `external.json` - fresh-machine setup + external-install manifest
 - `ccstatusline/` - statusline widget config, rendered to `~/.config/ccstatusline/`
@@ -32,14 +32,16 @@ Source of truth for the user-level Claude Code configuration (v2). `claude/` is 
 ## Codex sync (codex-sync.sh)
 
 - Generates the Codex config surface from Claude-side state; Codex has no hand-maintained sources. See the script header for full rules.
-- `~/.codex/AGENTS.md` = generated header + `claude/instructions/shared/*.md` (byte-identical to `~/.claude/AGENTS.md`) + company workspace `~/Documents/GitHubWork/CLAUDE.md` as a scoped section (when present). Warns above 24576 bytes (self-imposed budget: Codex applies no size limit to the global file, `project_doc_max_bytes` counts project docs only).
+- `~/.codex/AGENTS.md` = generated header + `claude/instructions/shared/*.md` (byte-identical to `~/.claude/AGENTS.md`). Warns above 24576 bytes (self-imposed budget: Codex applies no size limit to the global file, `project_doc_max_bytes` counts project docs only). Company workspace rules are no longer appended: `workspace-context.sh` injects them per session (see hooks).
+- `~/.codex/hooks.json` = grimoire-owned groups merged by jq from `claude/settings.hooks.json` (minus Claude-only handlers: codex login, ko-term-check, delegation reminder) plus a Codex-only SessionStart entry running `workspace-context.sh`. A group is owned when every command runs `$HOME/.claude/hooks/`; other groups (e.g. Orca's) are preserved. Codex loads untrusted hooks but never runs them: trust the grimoire groups once via `/hooks` after each change.
 - `~/.codex/skills/` = migrated copies of `~/.claude/skills/*` (minus the exclude list in the script, currently `g-insight`) plus skills inside installed Claude plugins (`mp-<plugin>-<skill>`). SKILL.md frontmatter is reduced to `name`/`description` because Codex rejects unknown keys; bodies are copied verbatim.
-- Ownership via `~/.codex/codex-sync-manifest.json`: only manifest-listed entries are ever deleted. `~/.codex/skills/.system/` and unmanaged entries are never touched.
+- Skill ownership via `~/.codex/codex-sync-manifest.json`: only manifest-listed skill entries are ever deleted (hooks.json groups use the command-path predicate above). `~/.codex/skills/.system/` and unmanaged entries are never touched.
 - Runs from post-commit after `sync.sh`; run manually after installing/updating Claude plugins.
 
 ## Hooks (claude/hooks/)
 
 - Shell scripts reading tool-call JSON from stdin; exit 2 blocks (PreToolUse) or feeds back (PostToolUse).
+- Write|Edit hooks source `hook-input.sh`, which maps both the Claude payload (`tool_input.file_path`, `content`/`new_string`) and the Codex `apply_patch` payload (`tool_input.command` patch text) to target paths and added content.
 - Inventory:
   - `pr-guard.sh` (PreToolUse, Bash): `gh pr create` must carry `--draft` and `--base`.
   - `emdash-check.sh` (PostToolUse, Write|Edit): flags em/en dashes written to md files.
@@ -47,9 +49,13 @@ Source of truth for the user-level Claude Code configuration (v2). `claude/` is 
   - `def-review-gate.sh` (PreToolUse, Write|Edit): emits permissionDecision "ask" so definition-file writes raise a user approval prompt, unless the path was recorded by `def-review-approve.sh` within 5 minutes.
   - `def-review-approve.sh` (manual, not hook-registered): records in-chat Korean-review approvals to `~/.claude/.def-review-approvals` (TTL 5 min) for the gate's marker pass.
   - `delegation-report-reminder.sh` (PostToolUse, Task|Agent): feeds back a reminder to include the delegation report (task / model / reason) whenever an agent call returns.
+  - `comment-cap-check.sh` (PostToolUse, Write|Edit): flags comment blocks over 3 lines in newly written JS/TS code (tech-stack.md per-block cap).
+  - `ko-term-check.sh` (UserPromptSubmit, Claude-only): nudges the next response away from forced-Korean terms and em/en dashes found in the previous response.
+  - `hook-input.sh` (sourced helper, not registered): payload normalization shared by the Write|Edit hooks.
+  - `workspace-context.sh` (Codex SessionStart, registered by codex-sync): injects the company workspace CLAUDE.md as additional context only under `~/Documents/GitHubWork/`.
 - `settings.hooks.json` also carries an inline SessionStart hook that logs codex in from `$OPENAI_CODEX_API_KEY`. It exists solely so explicit codex requests work; autonomous codex use stays forbidden (user CLAUDE.md).
 - Test manually before commit: `echo '<tool-call json>' | claude/hooks/<script>.sh; echo $?`.
-- All except `def-review-approve.sh` are registered in `claude/settings.hooks.json`, which references them at their live path `$HOME/.claude/hooks/`.
+- All except `def-review-approve.sh` (manual), `hook-input.sh` (sourced), and `workspace-context.sh` (Codex-only, registered by codex-sync) are registered in `claude/settings.hooks.json`, which references them at their live path `$HOME/.claude/hooks/`.
 - Changes take effect from the next Claude Code session (settings load at session start).
 
 ## doc-viewer (tools/doc-viewer/)

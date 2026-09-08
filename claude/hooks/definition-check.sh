@@ -5,9 +5,11 @@
 set -euo pipefail
 
 input="$(cat)"
-file="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')"
-[[ -n "$file" ]] || exit 0
+source "$(dirname "${BASH_SOURCE[0]}")/hook-input.sh"
 
+problems=""
+check_file() {
+local file="$1" budget type size hangul claude_root assembled frag
 # Scope and per-type budgets (chars; tokens ~= chars/4). Non-matches pass.
 # Order matters: templates/ must match before the generic references/ pattern.
 case "$file" in
@@ -23,11 +25,9 @@ case "$file" in
   # Any other CLAUDE.md / AGENTS.md / SKILL.md (outside the grimoire layout):
   # English-only check only; size budgets are grimoire policy (budget=0 skips).
   */CLAUDE.md|*/AGENTS.md|*/SKILL.md)             budget=0;     type="generic-definition" ;;
-  *) exit 0 ;;
+  *) return 0 ;;
 esac
-[[ -f "$file" ]] || exit 0
-
-problems=""
+[[ -f "$file" ]] || return 0
 
 size="$(wc -c < "$file" | tr -d ' ')"
 if (( budget > 0 && size > budget )); then
@@ -71,12 +71,18 @@ if [[ "$type" == "shared-fragment" || "$type" == "claude-only" ]]; then
   fi
 fi
 
-if [[ -n "$problems" ]]; then
-  {
-    echo "definition-check: $file"
-    printf '%b' "$problems"
-    echo "Fix now, or state the justification explicitly before proceeding."
-  } >&2
-  exit 2
-fi
-exit 0
+}
+
+while IFS= read -r f; do
+  problems=""
+  check_file "$f"
+  if [[ -n "$problems" ]]; then
+    {
+      echo "definition-check: $f"
+      printf '%b' "$problems"
+      echo "Fix now, or state the justification explicitly before proceeding."
+    } >&2
+    status=2
+  fi
+done < <(hook_files)
+exit "${status:-0}"
